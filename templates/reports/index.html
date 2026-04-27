@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports{% endblock %}
+
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Start Date</label>
+                {{ form.start_date }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">End Date</label>
+                {{ form.end_date }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block">Generate Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Revenue Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Revenue:</strong> ${{ total_revenue|floatformat:2 }}</p>
+                <p><strong>Total Bookings:</strong> {{ total_bookings }}</p>
+                <p><strong>Average per Booking:</strong> ${{ total_revenue|floatformat:2 }}{% if total_bookings %}/{{ total_bookings }}{% endif %}</p>
+                <p><strong>Period:</strong> {{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Revenue by Payment Type</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="paymentChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Top Barbers</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Barber</th>
+                                <th>Bookings</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for barber in top_barbers %}
+                            <tr>
+                                <td>{{ barber.full_name }}</td>
+                                <td>{{ barber.bookings_count }}</td>
+                                <td>${{ barber.revenue|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center">No data</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Top Services</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Bookings</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in top_services %}
+                            <tr>
+                                <td>{{ service.name }}</td>
+                                <td>{{ service.bookings_count }}</td>
+                                <td>${{ service.revenue|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center">No data</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Daily Revenue</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyRevenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Payment Type Chart
+    const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+    const paymentData = {{ payment_by_type|safe }};
+    new Chart(paymentCtx, {
+        type: 'pie',
+        data: {
+            labels: paymentData.map(item => item.payment_type),
+            datasets: [{
+                data: paymentData.map(item => item.total),
+                backgroundColor: ['#3498db', '#2ecc71', '#f39c12']
+            }]
+        }
+    });
+    
+    // Daily Revenue Chart
+    const revenueCtx = document.getElementById('dailyRevenueChart').getContext('2d');
+    const revenueData = {{ daily_revenue|safe }};
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: revenueData.map(item => item.date),
+            datasets: [{
+                label: 'Daily Revenue',
+                data: revenueData.map(item => item.total),
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Barbers{% endblock %}
+
+{% block page_title %}
+    Barbers Management
+    <a href="{% url 'barber_create' %}" class="btn btn-primary float-end">
+        <i class="fas fa-plus"></i> Add Barber
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search by name..." value="{{ search }}">
+                <button type="submit" class="btn btn-primary">Search</button>
+                {% if search %}
+                    <a href="{% url 'barber_list' %}" class="btn btn-secondary">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Specialty</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for barber in barbers %}
+                    <tr>
+                        <td>{{ barber.full_name }}</td>
+                        <td>{{ barber.phone }}</td>
+                        <td>{{ barber.specialty|default:"-" }}</td>
+                        <td>
+                            <i class="fas fa-star text-warning"></i> {{ barber.rating }}
+                        </td>
+                        <td>
+                            {% if barber.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'barber_detail' barber.pk %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'barber_edit' barber.pk %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No barbers found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

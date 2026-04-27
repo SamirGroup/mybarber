@@ -1,0 +1,1 @@
+web: gunicorn barbershop_crm.wsgi --log-file -

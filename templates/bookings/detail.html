@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Details{% endblock %}
+
+{% block page_title %}Booking Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Booking Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Client:</strong> {{ booking.client.full_name }}</p>
+                <p><strong>Barber:</strong> {{ booking.barber.full_name }}</p>
+                <p><strong>Service:</strong> {{ booking.service.name }}</p>
+                <p><strong>Date:</strong> {{ booking.date|date:"M d, Y" }}</p>
+                <p><strong>Time:</strong> {{ booking.time|time:"H:i" }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-{% if booking.status == 'completed' %}success{% elif booking.status == 'pending' %}warning{% elif booking.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                        {{ booking.status }}
+                    </span>
+                </p>
+                <p><strong>Notes:</strong> {{ booking.notes|default:"No notes" }}</p>
+                <hr>
+                <div class="btn-group">
+                    {% if booking.status != 'completed' and booking.status != 'cancelled' %}
+                    <form method="post" action="{% url 'booking_status_update' booking.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="btn btn-success">Mark Complete</button>
+                    </form>
+                    <form method="post" action="{% url 'booking_status_update' booking.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="btn btn-danger">Cancel Booking</button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if not payment and booking.status == 'completed' %}
+                        <a href="{% url 'payment_create' booking.pk %}" class="btn btn-primary">Record Payment</a>
+                    {% endif %}
+                </div>
+                <a href="{% url 'booking_list' %}" class="btn btn-secondary mt-2">Back</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Payment Information</h5>
+            </div>
+            <div class="card-body">
+                {% if payment %}
+                    <p><strong>Amount:</strong> ${{ payment.amount|floatformat:2 }}</p>
+                    <p><strong>Payment Type:</strong> {{ payment.get_payment_type_display }}</p>
+                    <p><strong>Payment Date:</strong> {{ payment.payment_date|date:"M d, Y H:i" }}</p>
+                    <p><strong>Transaction ID:</strong> {{ payment.transaction_id|default:"N/A" }}</p>
+                {% else %}
+                    <p class="text-muted">No payment recorded yet</p>
+                    {% if booking.status == 'completed' %}
+                        <a href="{% url 'payment_create' booking.pk %}" class="btn btn-primary">Record Payment</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Bookings{% endblock %}
+
+{% block page_title %}
+    Bookings Management
+    <a href="{% url 'booking_create' %}" class="btn btn-primary float-end">
+        <i class="fas fa-plus"></i> New Booking
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row mb-3">
+            <div class="col-md-4">
+                <select name="status" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="date" name="date" class="form-control" value="{{ date }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{% url 'booking_list' %}" class="btn btn-secondary">Reset</a>
+            </div>
+        </form>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Barber</th>
+                        <th>Service</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.client.full_name }}</td>
+                        <td>{{ booking.barber.full_name }}</td>
+                        <td>{{ booking.service.name }}</td>
+                        <td>{{ booking.date|date:"M d, Y" }} at {{ booking.time|time:"H:i" }}</td>
+                        <td>
+                            <span class="badge bg-{% if booking.status == 'completed' %}success{% elif booking.status == 'pending' %}warning{% elif booking.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                {{ booking.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'booking_edit' booking.pk %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No bookings found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
