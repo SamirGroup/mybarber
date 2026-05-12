@@ -38,6 +38,54 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/students/" class="{% if '/students/' in request.path and not '/students/classrooms' in request.path and not '/students/list' in request.path and not '/students/grades' in request.path and not '/students/attendance' in request.path and not '/students/homework' in request.path and not '/students/finance' in request.path and not '/students/chat' in request.path and not '/students/sms' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>O'quvchilar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                        <span>Sinf xonalari</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/list/" class="{% if '/students/list' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-users"></i>
+                        <span>O'quvchilar ro'yxati</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/grades/daily/" class="{% if '/students/grades' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Baholar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/attendance/" class="{% if '/students/attendance' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span>Davomat</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/homework/" class="{% if '/students/homework' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Uy vazifalar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/chat/" class="{% if '/students/chat' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>Chat</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/sms/config/" class="{% if '/students/sms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>SMS sozlamalari</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/enrollment/" class="{% if '/enrollment/' in request.path and not '/enrollment/leads' in request.path and not '/enrollment/applications' in request.path and not '/enrollment/call-centre' in request.path and not '/enrollment/reports' in request.path %}active{% endif %}">
                         <i class="fa-solid fa-graduation-cap"></i>
                         <span>Qabul bo'limi</span>

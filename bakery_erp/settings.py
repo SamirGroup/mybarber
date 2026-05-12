@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'accounting',
     'hr',
     'enrollment',
+    'students',
     'rosetta',
     'whitenoise.runserver_nostatic',
     'whitenoise',
