@@ -482,7 +482,7 @@ def call_centre(request):
         'recent_leads': recent_leads,
         'page_title': 'Call Centre',
     }
-    return render(request, 'enrollment/call_centre.html', context)
+    return render(request, 'enrollment/call_centre/call_panel.html', context)
 
 
 @login_required
@@ -898,3 +898,134 @@ def twilio_token(request):
         'identity': agent_identity,
         'configured': True,
     })
+
+
+# ── API Endpoints (JSON responses) ─────────────────────────────────────
+@login_required
+@enrollment_required
+def api_customer_info(request):
+    """Mijoz ma'lumotlarini olish (telefon raqam bo'yicha)."""
+    phone = request.GET.get('phone', '').strip()
+    
+    if not phone:
+        return JsonResponse({'found': False, 'error': 'Phone number required'})
+    
+    # Telefon raqamni normalizatsiya qilish
+    phone_clean = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+    
+    # Lead qidirish
+    lead = Lead.objects.filter(
+        Q(phone__icontains=phone_clean) | Q(phone_2__icontains=phone_clean)
+    ).select_related('interested_grade', 'source').first()
+    
+    if not lead:
+        return JsonResponse({'found': False})
+    
+    # Oxirgi qo'ng'iroq
+    last_call = CallRecord.objects.filter(lead=lead).order_by('-created_at').first()
+    
+    return JsonResponse({
+        'found': True,
+        'id': lead.id,
+        'name': lead.full_name,
+        'phone': lead.phone,
+        'phone_2': lead.phone_2,
+        'email': lead.email or '',
+        'region': lead.region or '',
+        'children_count': lead.children_count,
+        'interested_grade': lead.interested_grade.name if lead.interested_grade else '',
+        'status': lead.get_status_display(),
+        'source': lead.source.name if lead.source else '',
+        'last_call': last_call.created_at.strftime('%d.%m.%Y %H:%M') if last_call else 'Hech qachon',
+        'notes': lead.notes,
+    })
+
+
+@login_required
+@enrollment_required
+def api_agent_stats(request):
+    """Agent statistikasini olish (bugungi kun)."""
+    from django.db.models import Avg
+    today = timezone.now().date()
+    
+    calls_today = CallRecord.objects.filter(
+        agent=request.user,
+        created_at__date=today
+    )
+    
+    stats = {
+        'calls_today': calls_today.count(),
+        'answered_today': calls_today.filter(status='completed').count(),
+        'missed_today': calls_today.filter(status__in=['missed', 'no_answer']).count(),
+        'inbound_today': calls_today.filter(direction='inbound').count(),
+        'outbound_today': calls_today.filter(direction='outbound').count(),
+        'avg_duration': int(calls_today.aggregate(Avg('duration_seconds'))['duration_seconds__avg'] or 0),
+        'total_talk_time': int(calls_today.aggregate(Sum('talk_time_seconds'))['talk_time_seconds__sum'] or 0),
+    }
+    
+    return JsonResponse(stats)
+
+
+@login_required
+@enrollment_required
+def api_call_queue(request):
+    """Navbatdagi qo'ng'iroqlarni olish."""
+    from .models import CallQueue
+    
+    queue = CallQueue.objects.filter(
+        status='waiting'
+    ).select_related('call', 'call__lead').order_by('-priority', 'entered_at')[:10]
+    
+    queue_data = []
+    for entry in queue:
+        queue_data.append({
+            'id': entry.id,
+            'caller_number': entry.call.caller_number,
+            'lead_name': entry.call.lead.full_name if entry.call.lead else 'Noma\'lum',
+            'wait_time': entry.wait_time_seconds,
+            'position': entry.position,
+        })
+    
+    return JsonResponse({'queue': queue_data})
+
+
+@login_required
+@enrollment_required
+def agent_status_update(request):
+    """Agent statusini yangilash."""
+    if request.method == 'POST':
+        status = request.POST.get('status', 'offline')
+        
+        agent, _ = AgentProfile.objects.get_or_create(user=request.user)
+        agent.status = status
+        agent.is_available = (status == 'online')
+        agent.save()
+        
+        # Audit log
+        from .services import AuditService
+        AuditService.log_action(
+            user=request.user,
+            action='agent_status_changed',
+            description=f"Status changed to {status}",
+            request=request
+        )
+        
+        return JsonResponse({'status': 'ok', 'new_status': status})
+    
+    return JsonResponse({'error': 'POST required'}, status=400)
+
+
+@login_required
+@enrollment_required
+def call_notes_update(request, call_id):
+    """Qo'ng'iroq eslatmasini yangilash."""
+    if request.method == 'POST':
+        call = get_object_or_404(CallRecord, id=call_id, agent=request.user)
+        notes = request.POST.get('notes', '').strip()
+        
+        call.notes = notes
+        call.save()
+        
+        return JsonResponse({'status': 'ok'})
+    
+    return JsonResponse({'error': 'POST required'}, status=400)

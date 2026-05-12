@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">📁 Hujjat turlari</h1>
+
+<div class="card" style="max-width:700px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;margin-bottom:24px;">
+  <h3 style="margin-bottom:16px;">Yangi hujjat turi qo'shish</h3>
+  <form method="post" style="display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end;">
+    {% csrf_token %}
+    <div>
+      <label>Nomi</label>
+      <input type="text" name="name" class="form-control" placeholder="Tug'ilganlik haqida guvohnoma" required>
+    </div>
+    <div>
+      <label>
+        <input type="checkbox" name="is_required">
+        Majburiy
+      </label>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Qo'shish</button>
+  </form>
+</div>
+
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;">Mavjud hujjat turlari</h3>
+  {% if doc_types %}
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr>
+        <th>Nomi</th>
+        <th>Majburiy</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dt in doc_types %}
+      <tr>
+        <td>{{ dt.name }}</td>
+        <td>
+          {% if dt.is_required %}
+          <span class="badge badge-danger">Majburiy</span>
+          {% else %}
+          <span class="badge badge-secondary">Ixtiyoriy</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Hujjat turlari yo'q.</p>
+  {% endif %}
+</div>
+{% endblock %}

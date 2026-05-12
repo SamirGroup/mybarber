@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models import Sum
 from enrollment.models import Grade, AcademicYear
 
 
@@ -81,6 +82,25 @@ class DocumentType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class DocumentTemplate(models.Model):
+    """Hujjatlar generatsiyasi uchun shablonlar"""
+    name = models.CharField(max_length=200)
+    code = models.CharField(max_length=50, unique=True, help_text="Masalan: student_card, certificate")
+    template_text = models.TextField(help_text="O'zgaruvchilar: {{student_name}}, {{classroom}}, {{date}}")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
+    
+    def generate(self, context):
+        """Hujjat generatsiya qilish"""
+        text = self.template_text
+        for key, value in context.items():
+            text = text.replace('{{' + key + '}}', str(value))
+        return text
 
 
 class StudentDocument(models.Model):
@@ -201,6 +221,10 @@ class Homework(models.Model):
     due_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     file = models.FileField(upload_to='students/homework/', null=True, blank=True)
+    
+    # Qo'shimcha: Kimlarga biriktirilgan (butun sinf yoki alohida o'quvchilar)
+    students = models.ManyToManyField(Student, blank=True, related_name='assigned_homeworks', 
+                                       help_text="Bo'sh qoldirilsa, butun sinfga biriktiriladi")
 
     class Meta:
         ordering = ['-due_date']
@@ -209,7 +233,108 @@ class Homework(models.Model):
         return f"{self.classroom} | {self.subject} — {self.title}"
 
 
+class HomeworkSubmission(models.Model):
+    """O'quvchi tomonidan topshirilgan uy vazifasi"""
+    STATUS_CHOICES = [
+        ('submitted', 'Topshirildi'),
+        ('graded', 'Baholandi'),
+        ('returned', 'Qaytarildi'),
+    ]
+    
+    homework = models.ForeignKey(Homework, on_delete=models.CASCADE, related_name='submissions')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='homework_submissions')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    text = models.TextField(blank=True)
+    file = models.FileField(upload_to='students/homework_submissions/', null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
+    grade = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    teacher_comment = models.TextField(blank=True)
+    graded_at = models.DateTimeField(null=True, blank=True)
+    graded_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        ordering = ['-submitted_at']
+        unique_together = ['homework', 'student']
+    
+    def __str__(self):
+        return f"{self.student} | {self.homework} | {self.status}"
+
+
 # ── Finance ───────────────────────────────────────────────────────────
+class StudentBalance(models.Model):
+    """O'quvchi qarzdorligini avtomatik hisoblash"""
+    student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='balance')
+    total_debt = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.student} — Qarz: {self.total_debt} so'm"
+
+    def update_balance(self):
+        """Qarzdorlikni qayta hisoblash"""
+        today = timezone.now().date()
+        total = 0
+        
+        for contract in self.student.contracts.filter(is_active=True):
+            # Oylik to'lovlar miqdorini hisoblash
+            months_active = self._months_between(contract.start_date, today)
+            expected = contract.effective_fee * months_active
+            
+            # To'langan summalar
+            paid = contract.payments.aggregate(s=Sum('amount'))['s'] or 0
+            
+            total += max(0, expected - paid)
+        
+        self.total_debt = total
+        self.save()
+        return total
+    
+    def _months_between(self, start, end):
+        """Ikkita sana orasidagi oylar soni"""
+        return (end.year - start.year) * 12 + (end.month - start.month) + 1
+
+
+class MonthlyPayment(models.Model):
+    """Har oy uchun avtomatik yaratiladigan to'lov"""
+    STATUS_CHOICES = [
+        ('pending', 'Kutilmoqda'),
+        ('paid', 'To\'langan'),
+        ('partial', 'Qisman to\'langan'),
+        ('overdue', 'Muddati o\'tgan'),
+    ]
+    
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='monthly_payments')
+    month = models.DateField(help_text="Qaysi oy uchun (YYYY-MM-01)")
+    amount_due = models.DecimalField(max_digits=12, decimal_places=2)
+    amount_paid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    due_date = models.DateField(help_text="To'lov muddati")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-month']
+        unique_together = ['contract', 'month']
+    
+    def __str__(self):
+        return f"{self.contract.student} | {self.month:%Y-%m} — {self.amount_due} so'm"
+    
+    def update_status(self):
+        """Statusni yangilash"""
+        today = timezone.now().date()
+        
+        if self.amount_paid >= self.amount_due:
+            self.status = 'paid'
+        elif self.amount_paid > 0:
+            self.status = 'partial'
+        elif today > self.due_date:
+            self.status = 'overdue'
+        else:
+            self.status = 'pending'
+        
+        self.save()
+
+
 class Contract(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='contracts')
     contract_number = models.CharField(max_length=100, unique=True)
@@ -292,12 +417,21 @@ class SmsLog(models.Model):
 
 # ── Internal Chat ─────────────────────────────────────────────────────
 class ChatGroup(models.Model):
+    GROUP_TYPE_CHOICES = [
+        ('classroom', 'Sinf guruhi'),
+        ('subject', 'Fan guruhi'),
+        ('custom', 'Maxsus guruh'),
+    ]
+    
     name = models.CharField(max_length=200)
+    group_type = models.CharField(max_length=20, choices=GROUP_TYPE_CHOICES, default='custom')
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_chats')
     classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.SET_NULL, related_name='chat_groups')
+    subject = models.ForeignKey(Subject, null=True, blank=True, on_delete=models.SET_NULL, related_name='chat_groups')
     students = models.ManyToManyField(Student, blank=True, related_name='chat_groups')
     members = models.ManyToManyField(User, blank=True, related_name='chat_groups')
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -309,10 +443,50 @@ class ChatMessage(models.Model):
     text = models.TextField()
     file = models.FileField(upload_to='students/chat/', null=True, blank=True)
     sent_at = models.DateTimeField(auto_now_add=True)
-    is_read_by_admin = models.BooleanField(default=False)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['sent_at']
 
     def __str__(self):
         return f"{self.sender} → {self.group} | {self.sent_at:%Y-%m-%d %H:%M}"
+
+
+class ChatMessageRead(models.Model):
+    """Xabarlarni o'qilgan/o'qilmagan holati"""
+    message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name='read_status')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='read_messages')
+    read_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['message', 'user']
+    
+    def __str__(self):
+        return f"{self.user} read {self.message} at {self.read_at:%Y-%m-%d %H:%M}"
+
+
+# ── Student Transfer ──────────────────────────────────────────────────
+class StudentTransfer(models.Model):
+    """O'quvchini boshqa sinfga ko'chirish yoki maktabdan chiqarish"""
+    TRANSFER_TYPE = [
+        ('class_transfer', 'Sinf o\'zgartirish'),
+        ('school_transfer', 'Maktab o\'zgartirish'),
+        ('graduation', 'Tamomlash'),
+        ('withdrawal', 'Chiqarish'),
+    ]
+    
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='transfers')
+    transfer_type = models.CharField(max_length=20, choices=TRANSFER_TYPE)
+    from_classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.SET_NULL, related_name='transfers_out')
+    to_classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.SET_NULL, related_name='transfers_in')
+    reason = models.TextField(blank=True)
+    transfer_date = models.DateField(default=timezone.now)
+    transferred_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-transfer_date']
+    
+    def __str__(self):
+        return f"{self.student} | {self.get_transfer_type_display()} | {self.transfer_date}"

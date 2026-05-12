@@ -639,6 +639,7 @@ def payment_add(request, pk):
     context = {
         'student': student,
         'contracts': contracts,
+        'today': timezone.now().date(),
         'page_title': 'Yangi to\'lov',
     }
     return render(request, 'students/payment_form.html', context)

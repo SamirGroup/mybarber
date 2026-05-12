@@ -14,8 +14,15 @@ urlpatterns = [
 
     # Call Centre
     path('call-centre/', views.call_centre, name='enrollment_call_centre'),
-    path('call-centre/initiate/', views.call_initiate, name='enrollment_call_initiate'),
-    path('call-centre/end/', views.call_end, name='enrollment_call_end'),
+    path('call/initiate/', views.call_initiate, name='enrollment_call_initiate'),
+    path('call/end/', views.call_end, name='enrollment_call_end'),
+    path('call/<int:call_id>/notes/', views.call_notes_update, name='enrollment_call_notes'),
+
+    # API Endpoints
+    path('api/customer-info/', views.api_customer_info, name='enrollment_api_customer_info'),
+    path('api/agent-stats/', views.api_agent_stats, name='enrollment_api_agent_stats'),
+    path('api/call-queue/', views.api_call_queue, name='enrollment_api_call_queue'),
+    path('agent/status/', views.agent_status_update, name='enrollment_agent_status'),
 
     # Twilio webhooks
     path('twilio/voice/', views.twilio_voice_webhook, name='enrollment_twilio_voice'),

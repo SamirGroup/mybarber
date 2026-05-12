@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">💰 Yangi to'lov — {{ student.full_name }}</h1>
+
+<div class="card" style="max-width:700px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="form-group">
+      <label>Shartnoma</label>
+      <select name="contract" class="form-control">
+        <option value="">— Tanlang —</option>
+        {% for c in contracts %}
+        <option value="{{ c.id }}">{{ c.contract_number }} — {{ c.effective_fee|floatformat:0 }} so'm/oy</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label>Summa <span style="color:#dc3545;">*</span></label>
+        <input type="number" name="amount" class="form-control" step="1000" required>
+      </div>
+      <div class="form-group">
+        <label>To'lov usuli <span style="color:#dc3545;">*</span></label>
+        <select name="method" class="form-control" required>
+          <option value="cash">Naqd</option>
+          <option value="card">Karta</option>
+          <option value="transfer">O'tkazma</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label>To'lov sanasi <span style="color:#dc3545;">*</span></label>
+        <input type="date" name="payment_date" class="form-control" value="{{ today|date:'Y-m-d' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Qaysi oy uchun <span style="color:#dc3545;">*</span></label>
+        <input type="date" name="month_for" class="form-control" value="{{ today|date:'Y-m-01' }}" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Eslatma</label>
+      <textarea name="note" class="form-control" rows="2"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Saqlash</button>
+    <a href="{% url 'students_finance' student.pk %}" class="btn" style="margin-left:8px;">Bekor qilish</a>
+  </form>
+</div>
+{% endblock %}

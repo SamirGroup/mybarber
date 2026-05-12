@@ -154,6 +154,8 @@ def dashboard(request):
             return redirect('branches_dashboard')
         if 'enrollment_agent' in groups or 'enrollment_manager' in groups:
             return redirect('enrollment_dashboard')
+        if 'students_agent' in groups or 'students_manager' in groups:
+            return redirect('students_dashboard')
         # Unknown role — show a plain access-denied page
         return render(request, 'no_access.html')
 

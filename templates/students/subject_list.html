@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">📚 Fanlar</h1>
+
+<div class="card" style="max-width:700px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;margin-bottom:24px;">
+  <h3 style="margin-bottom:16px;">Yangi fan qo'shish</h3>
+  <form method="post" style="display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end;">
+    {% csrf_token %}
+    <div>
+      <label>Fan nomi</label>
+      <input type="text" name="name" class="form-control" placeholder="Matematika" required>
+    </div>
+    <div>
+      <label>Kod</label>
+      <input type="text" name="code" class="form-control" placeholder="MATH">
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Qo'shish</button>
+  </form>
+</div>
+
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;">Mavjud fanlar</h3>
+  {% if subjects %}
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+    {% for s in subjects %}
+    <div style="padding:16px;background:#fef4e4;border-radius:8px;">
+      <strong>{{ s.name }}</strong>
+      {% if s.code %}<br><small style="color:#666;">{{ s.code }}</small>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:#888;">Fanlar yo'q.</p>
+  {% endif %}
+</div>
+{% endblock %}
