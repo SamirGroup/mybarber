@@ -15,6 +15,7 @@ urlpatterns = [
     # Call Centre
     path('call-centre/', views.call_centre, name='enrollment_call_centre'),
     path('call-centre/initiate/', views.call_initiate, name='enrollment_call_initiate'),
+    path('call-centre/end/', views.call_end, name='enrollment_call_end'),
 
     # Twilio webhooks
     path('twilio/voice/', views.twilio_voice_webhook, name='enrollment_twilio_voice'),

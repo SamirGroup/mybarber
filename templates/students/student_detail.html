@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">👤 O'quvchi: {{ student.full_name }}</h1>
+
+<!-- Student info cards -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:24px;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;color:#D4A373;">{{ student.age }}</div>
+    <div style="font-size:13px;color:#666;">Yoshi</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;color:{% if total_debt > 0 %}#dc3545{% else %}#4ca653{% endif %};">{{ total_debt|floatformat:0 }}</div>
+    <div style="font-size:13px;color:#666;">Qarzdorlik (so'm)</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;color:#2a5ec0;">{{ contracts.count }}</div>
+    <div style="font-size:13px;color:#666;">Shartnomalar</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div style="margin-bottom:24px;">
+  <div class="tabs" style="display:flex;gap:8px;border-bottom:2px solid #e2d9cf;">
+    <button class="tab-btn active" onclick="showTab('info')">Ma'lumotlar</button>
+    <button class="tab-btn" onclick="showTab('documents')">Hujjatlar</button>
+    <button class="tab-btn" onclick="showTab('grades')">Baholar</button>
+    <button class="tab-btn" onclick="showTab('attendance')">Davomat</button>
+    <button class="tab-btn" onclick="showTab('finance')">Moliya</button>
+    <button class="tab-btn" onclick="showTab('homework')">Uy vazifalar</button>
+    <button class="tab-btn" onclick="showTab('chat')">Chat</button>
+  </div>
+</div>
+
+<!-- Tab: Info -->
+<div id="tab-info" class="tab-content">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+      <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user" style="color:#D4A373;"></i> Shaxsiy ma'lumotlar</h3>
+      <p><strong>Ism:</strong> {{ student.first_name }}</p>
+      <p><strong>Familiya:</strong> {{ student.last_name }}</p>
+      <p><strong>Otasining ismi:</strong> {{ student.middle_name|default:"—" }}</p>
+      <p><strong>Jinsi:</strong> {{ student.get_gender_display }}</p>
+      <p><strong>Tug'ilgan sana:</strong> {{ student.birth_date|date:"d.m.Y" }}</p>
+      <p><strong>Yoshi:</strong> {{ student.age }} yosh</p>
+      <p><strong>Metrika/ID:</strong> {{ student.passport_or_id|default:"—" }}</p>
+      <p><strong>ERP raqam:</strong> {{ student.erp_number|default:"—" }}</p>
+      <p><strong>Sinf:</strong> {{ student.classroom|default:"—" }}</p>
+      <p><strong>Status:</strong> {% if student.is_active %}<span class="badge badge-success">Faol</span>{% else %}<span class="badge badge-secondary">Nofaol</span>{% endif %}</p>
+      <p><strong>Ro'yxatdan o'tgan:</strong> {{ student.enrolled_date|date:"d.m.Y" }}</p>
+      <a href="{% url 'students_edit' student.pk %}" class="btn btn-primary" style="margin-top:12px;"><i class="fa-solid fa-edit"></i> Tahrirlash</a>
+    </div>
+
+    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+      <h3 style="margin-bottom:16px;"><i class="fa-solid fa-users" style="color:#D4A373;"></i> Ota-ona ma'lumotlari</h3>
+      {% for parent in student.parents.all %}
+      <div style="padding:12px;background:#fef4e4;border-radius:8px;margin-bottom:12px;">
+        <p><strong>{{ parent.full_name }}</strong> ({{ parent.relation }})</p>
+        <p><i class="fa-solid fa-phone"></i> {{ parent.phone }}</p>
+        {% if parent.phone2 %}<p><i class="fa-solid fa-phone"></i> {{ parent.phone2 }}</p>{% endif %}
+        {% if parent.email %}<p><i class="fa-solid fa-envelope"></i> {{ parent.email }}</p>{% endif %}
+      </div>
+      {% empty %}
+      <p style="color:#888;">Ota-ona ma'lumotlari kiritilmagan.</p>
+      {% endfor %}
+      
+      <h3 style="margin:24px 0 16px;"><i class="fa-solid fa-home" style="color:#D4A373;"></i> Manzil</h3>
+      <p>{{ student.address|default:"—"|linebreaksbr }}</p>
+      
+      <h3 style="margin:24px 0 16px;"><i class="fa-solid fa-notes-medical" style="color:#D4A373;"></i> Tibbiy eslatmalar</h3>
+      <p>{{ student.medical_notes|default:"—"|linebreaksbr }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Documents -->
+<div id="tab-documents" class="tab-content" style="display:none;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-file" style="color:#D4A373;"></i> Hujjatlar</h3>
+    
+    <form method="post" action="{% url 'students_doc_upload' student.pk %}" enctype="multipart/form-data" style="margin-bottom:24px;padding:16px;background:#fef4e4;border-radius:8px;">
+      {% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:12px;align-items:end;">
+        <div>
+          <label>Hujjat turi</label>
+          <select name="doc_type" class="form-control" required>
+            {% for dt in doc_types %}
+            <option value="{{ dt.id }}">{{ dt.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label>Sarlavha</label>
+          <input type="text" name="title" class="form-control">
+        </div>
+        <div>
+          <label>Fayl</label>
+          <input type="file" name="file" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-upload"></i> Yuklash</button>
+      </div>
+    </form>
+
+    {% if documents %}
+    <table class="data-table" style="width:100%;">
+      <thead>
+        <tr><th>Tur</th><th>Sarlavha</th><th>Yuklangan</th><th>Kim yukladi</th><th>Amal</th></tr>
+      </thead>
+      <tbody>
+        {% for doc in documents %}
+        <tr>
+          <td>{{ doc.doc_type.name }}</td>
+          <td>{{ doc.title|default:"—" }}</td>
+          <td>{{ doc.uploaded_at|date:"d.m.Y H:i" }}</td>
+          <td>{{ doc.uploaded_by|default:"—" }}</td>
+          <td>
+            <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm"><i class="fa-solid fa-download"></i></a>
+            <a href="{% url 'students_doc_delete' doc.pk %}" class="btn btn-sm" onclick="return confirm('O\'chirmoqchimisiz?')"><i class="fa-solid fa-trash"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#888;">Hujjatlar yuklanmagan.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Tab: Grades -->
+<div id="tab-grades" class="tab-content" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+      <h3 style="margin-bottom:16px;"><i class="fa-solid fa-calendar-day" style="color:#D4A373;"></i> Kunlik baholar</h3>
+      {% if daily_grades %}
+      <table class="data-table" style="width:100%;">
+        <thead>
+          <tr><th>Fan</th><th>Baho</th><th>Sana</th><th>Izoh</th></tr>
+        </thead>
+        <tbody>
+          {% for g in daily_grades %}
+          <tr>
+            <td>{{ g.subject.name }}</td>
+            <td><strong style="color:#D4A373;">{{ g.grade }}</strong></td>
+            <td>{{ g.date|date:"d.m.Y" }}</td>
+            <td>{{ g.comment|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:#888;">Kunlik baholar yo'q.</p>
+      {% endif %}
+    </div>
+
+    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+      <h3 style="margin-bottom:16px;"><i class="fa-solid fa-chart-line" style="color:#D4A373;"></i> Chorak baholari</h3>
+      {% if quarter_grades %}
+      <table class="data-table" style="width:100%;">
+        <thead>
+          <tr><th>Fan</th><th>Chorak</th><th>Baho</th></tr>
+        </thead>
+        <tbody>
+          {% for g in quarter_grades %}
+          <tr>
+            <td>{{ g.subject.name }}</td>
+            <td>{{ g.quarter }}</td>
+            <td><strong style="color:#D4A373;font-size:18px;">{{ g.grade }}</strong></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:#888;">Chorak baholari yo'q.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Attendance -->
+<div id="tab-attendance" class="tab-content" style="display:none;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-clipboard-check" style="color:#D4A373;"></i> Davomat</h3>
+    {% if attendance %}
+    <table class="data-table" style="width:100%;">
+      <thead>
+        <tr><th>Sana</th><th>Fan</th><th>Status</th><th>Eslatma</th></tr>
+      </thead>
+      <tbody>
+        {% for a in attendance %}
+        <tr>
+          <td>{{ a.date|date:"d.m.Y" }}</td>
+          <td>{{ a.subject|default:"—" }}</td>
+          <td><span class="badge badge-{% if a.status == 'present' %}success{% elif a.status == 'late' %}warning{% else %}danger{% endif %}">{{ a.get_status_display }}</span></td>
+          <td>{{ a.note|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#888;">Davomat ma'lumotlari yo'q.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Tab: Finance -->
+<div id="tab-finance" class="tab-content" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+      <h3 style="margin-bottom:16px;"><i class="fa-solid fa-file-contract" style="color:#D4A373;"></i> Shartnomalar</h3>
+      {% for contract in contracts %}
+      <div style="padding:16px;background:{% if contract.is_active %}#e8f5e9{% else %}#f5f5f5{% endif %};border-radius:8px;margin-bottom:12px;">
+        <p><strong>{{ contract.contract_number }}</strong> {% if contract.is_active %}<span class="badge badge-success">Faol</span>{% else %}<span class="badge badge-secondary">Nofaol</span>{% endif %}</p>
+        <p><strong>Oylik to'lov:</strong> {{ contract.monthly_fee|floatformat:0 }} so'm</p>
+        {% if contract.discount_percent > 0 %}
+        <p><strong>Chegirma:</strong> {{ contract.discount_percent }}% ({{ contract.discount_reason }})</p>
+        <p><strong>Haqiqiy to'lov:</strong> {{ contract.effective_fee|floatformat:0 }} so'm</p>
+        {% endif %}
+        <p><strong>Muddat:</strong> {{ contract.start_date|date:"d.m.Y" }} — {{ contract.end_date|date:"d.m.Y"|default:"Davom etmoqda" }}</p>
+      </div>
+      {% empty %}
+      <p style="color:#888;">Shartnomalar yo'q.</p>
+      {% endfor %}
+      <a href="{% url 'students_contract_add' student.pk %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi shartnoma</a>
+    </div>
+
+    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+      <h3 style="margin-bottom:16px;"><i class="fa-solid fa-money-bill" style="color:#D4A373;"></i> To'lovlar</h3>
+      {% if payments %}
+      <table class="data-table" style="width:100%;">
+        <thead>
+          <tr><th>Summa</th><th>Oy</th><th>Sana</th><th>Usul</th></tr>
+        </thead>
+        <tbody>
+          {% for p in payments %}
+          <tr>
+            <td><strong>{{ p.amount|floatformat:0 }}</strong> so'm</td>
+            <td>{{ p.month_for|date:"M Y" }}</td>
+            <td>{{ p.payment_date|date:"d.m.Y" }}</td>
+            <td>{{ p.get_method_display }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="color:#888;">To'lovlar yo'q.</p>
+      {% endif %}
+      <a href="{% url 'students_payment_add' student.pk %}" class="btn btn-primary" style="margin-top:12px;"><i class="fa-solid fa-plus"></i> To'lov qo'shish</a>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Homework -->
+<div id="tab-homework" class="tab-content" style="display:none;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-book-open" style="color:#D4A373;"></i> Uy vazifalar</h3>
+    {% if homeworks %}
+    <table class="data-table" style="width:100%;">
+      <thead>
+        <tr><th>Fan</th><th>Mavzu</th><th>Deadline</th><th>O'qituvchi</th><th>Fayl</th></tr>
+      </thead>
+      <tbody>
+        {% for h in homeworks %}
+        <tr>
+          <td>{{ h.subject.name }}</td>
+          <td>{{ h.title }}</td>
+          <td>{{ h.due_date|date:"d.m.Y" }}</td>
+          <td>{{ h.teacher|default:"—" }}</td>
+          <td>{% if h.file %}<a href="{{ h.file.url }}" target="_blank"><i class="fa-solid fa-download"></i></a>{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#888;">Uy vazifalar yo'q.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Tab: Chat -->
+<div id="tab-chat" class="tab-content" style="display:none;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-comments" style="color:#D4A373;"></i> Chat guruhlar</h3>
+    {% if chat_groups %}
+    <div style="display:grid;gap:12px;">
+      {% for chat in chat_groups %}
+      <a href="{% url 'students_chat_detail' chat.pk %}" style="display:block;padding:16px;background:#fef4e4;border-radius:8px;text-decoration:none;color:inherit;">
+        <strong>{{ chat.name }}</strong>
+        <p style="font-size:13px;color:#666;margin:4px 0 0;">{{ chat.students.count }} o'quvchi • {{ chat.members.count }} o'qituvchi</p>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:#888;">Chat guruhlar yo'q.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function showTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  
+  // Remove active class from all buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  document.getElementById('tab-' + tabName).style.display = 'block';
+  
+  // Add active class to clicked button
+  event.target.classList.add('active');
+}
+</script>
+
+<style>
+.tab-btn {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.3s;
+}
+.tab-btn:hover {
+  color: #D4A373;
+}
+.tab-btn.active {
+  color: #D4A373;
+  border-bottom-color: #D4A373;
+}
+</style>
+{% endblock %}

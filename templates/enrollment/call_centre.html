@@ -1,7 +1,74 @@
 {% extends 'base.html' %}
 
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<style>
+  .call-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .call-btn-start {
+    background: #28a745;
+    color: white;
+  }
+  .call-btn-start:hover { background: #218838; }
+  .call-btn-end {
+    background: #dc3545;
+    color: white;
+  }
+  .call-btn-end:hover { background: #c82333; }
+  .call-btn-mute {
+    background: #6c757d;
+    color: white;
+  }
+  .call-active {
+    animation: pulse 1.5s infinite;
+    background: #dc3545;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+  }
+  .phone-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .phone-key {
+    padding: 15px;
+    font-size: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .phone-key:hover { background: #e9ecef; }
+  .call-timer {
+    font-size: 32px;
+    font-weight: bold;
+    font-family: monospace;
+    color: #28a745;
+  }
+  .recording-indicator {
+    color: #dc3545;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1 style="font-size:28px;margin-bottom:24px;">📞 Call Centre — Bunyod Non Sharjah School</h1>
+<h1 style="font-size:28px;margin-bottom:24px;">📞 Call Centre — Xususiy Maktab</h1>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
   <!-- Agent status -->
@@ -10,30 +77,85 @@
     <p>Agent: <strong>{{ request.user.username }}</strong></p>
     <p>Status: {% if agent.is_available %}<span class="badge badge-success">Mavjud</span>{% else %}<span class="badge badge-warning">Band</span>{% endif %}</p>
     <p>Ichki raqam: {{ agent.extension|default:"—" }}</p>
-    <a href="{% url 'enrollment_call_initiate' %}" class="btn btn-primary" style="margin-top:12px;">
-      <i class="fa-solid fa-phone"></i> Qo'ng'iroq qilish
-    </a>
+    
+    <form method="post" style="margin-top:12px;">
+      {% csrf_token %}
+      <label>
+        <input type="checkbox" name="is_available" {% if agent.is_available %}checked{% endif %} onchange="this.form.submit()">
+        Men mavjudman
+      </label>
+    </form>
   </div>
 
-  <!-- Active calls -->
-    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
-    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-phone-volume" style="color:#D4A373;"></i> Faol qo'ng'iroqlar</h3>
-    {% if active_calls %}
-      {% for call in active_calls %}
-      <div style="padding:12px;background:#fef4e4;border-radius:8px;margin-bottom:8px;">
-        <strong>{{ call.callee_number }}</strong> — {{ call.get_status_display }}<br>
-        <small>{{ call.created_at|date:"H:i" }}</small>
+  <!-- Call panel -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;text-align:center;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-phone" style="color:#D4A373;"></i> Telefon paneli</h3>
+    
+    <div id="callDisplay" style="min-height:60px;margin-bottom:16px;">
+      <input type="tel" id="phoneNumber" class="form-control" placeholder="+998 90 000 00 00" style="font-size:24px;text-align:center;padding:12px;">
+    </div>
+    
+    <div class="phone-keypad">
+      <button class="phone-key" onclick="addDigit('1')">1</button>
+      <button class="phone-key" onclick="addDigit('2')">2</button>
+      <button class="phone-key" onclick="addDigit('3')">3</button>
+      <button class="phone-key" onclick="addDigit('4')">4</button>
+      <button class="phone-key" onclick="addDigit('5')">5</button>
+      <button class="phone-key" onclick="addDigit('6')">6</button>
+      <button class="phone-key" onclick="addDigit('7')">7</button>
+      <button class="phone-key" onclick="addDigit('8')">8</button>
+      <button class="phone-key" onclick="addDigit('9')">9</button>
+      <button class="phone-key" onclick="addDigit('+')">+</button>
+      <button class="phone-key" onclick="addDigit('0')">0</button>
+      <button class="phone-key" onclick="deleteDigit()"><i class="fa-solid fa-delete-left"></i></button>
+    </div>
+    
+    <div style="margin-top:20px;">
+      <button id="callButton" class="call-btn call-btn-start" onclick="initiateCall()">
+        <i class="fa-solid fa-phone"></i>
+      </button>
+    </div>
+    
+    <div id="callStatus" style="margin-top:16px;">
+      <div id="callTimer" class="call-timer" style="display:none;">00:00</div>
+      <div id="recordingIndicator" class="recording-indicator" style="display:none;">
+        <i class="fa-solid fa-circle"></i> Yozib olinmoqda
       </div>
-      {% endfor %}
-    {% else %}
-      <p style="color:#888;">Hozircha faol qo'ng'iroq yo'q.</p>
-    {% endif %}
+      <p id="statusText" style="color:#666;margin-top:8px;">Tayyor</p>
+    </div>
   </div>
 </div>
 
-<!-- Recent calls -->
+<!-- Quick dial from leads -->
 <div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
-  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-clock-rotate-left" style="color:#D4A373;"></i> So'nggi qo'ng'iroqlar</h3>
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-address-book" style="color:#D4A373;"></i> Tezkor qo'ng'iroq</h3>
+  <select id="leadSelect" class="form-control" onchange="selectLead(this.value)" style="margin-bottom:12px;">
+    <option value="">— Lead tanlang —</option>
+    {% for lead in recent_leads %}
+    <option value="{{ lead.phone }}">{{ lead.full_name }} — {{ lead.phone }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<!-- Active calls -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-phone-volume" style="color:#D4A373;"></i> Faol qo'ng'iroqlar</h3>
+  {% if active_calls %}
+    {% for call in active_calls %}
+    <div style="padding:12px;background:#fef4e4;border-radius:8px;margin-bottom:8px;">
+      <strong>{{ call.callee_number }}</strong> — {{ call.get_status_display }}<br>
+      <small>{{ call.created_at|date:"H:i" }}</small>
+      {% if call.lead %}<a href="{% url 'enrollment_lead_detail' call.lead.pk %}" class="btn btn-sm" style="margin-top:4px;">Lead</a>{% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+  <p style="color:#888;">Hozircha faol qo'ng'iroq yo'q.</p>
+  {% endif %}
+</div>
+
+<!-- Recent calls with recordings -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-clock-rotate-left" style="color:#D4A373;"></i> So'nggi qo'ng'iroqlar (yozuvlar bilan)</h3>
   {% if recent_calls %}
   <table class="data-table" style="width:100%;">
     <thead>
@@ -42,8 +164,9 @@
         <th>Raqam</th>
         <th>Status</th>
         <th>Davomiyligi</th>
-        <th>Lead</th>
+        <th>Yozuv</th>
         <th>Sana</th>
+        <th>Amal</th>
       </tr>
     </thead>
     <tbody>
@@ -52,9 +175,21 @@
         <td>{{ call.get_direction_display }}</td>
         <td>{{ call.callee_number }}</td>
         <td><span class="badge badge-{% if call.status == 'completed' %}success{% elif call.status == 'missed' %}danger{% else %}warning{% endif %}">{{ call.get_status_display }}</span></td>
-        <td>{{ call.duration_seconds|default:"—" }} s</td>
-        <td>{% if call.lead %}<a href="{% url 'enrollment_lead_detail' call.lead.pk %}">{{ call.lead.full_name }}</a>{% else %}—{% endif %}</td>
+        <td>{% if call.duration_seconds %}{{ call.duration_seconds }} s{% else %}—{% endif %}</td>
+        <td>
+          {% if call.recording_url %}
+          <audio controls style="height:30px;width:120px;">
+            <source src="{{ call.recording_url }}" type="audio/wav">
+            <source src="{{ call.recording_url }}" type="audio/mpeg">
+          </audio>
+          {% else %}—{% endif %}
+        </td>
         <td>{{ call.created_at|date:"d M H:i" }}</td>
+        <td>
+          {% if call.lead %}
+          <a href="{% url 'enrollment_lead_detail' call.lead.pk %}" class="btn btn-sm"><i class="fa-solid fa-user"></i></a>
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -64,4 +199,135 @@
   {% endif %}
 </div>
 
+<script>
+let currentCallSid = null;
+let callTimerInterval = null;
+let callStartTime = null;
+
+function addDigit(digit) {
+  const input = document.getElementById('phoneNumber');
+  input.value += digit;
+}
+
+function deleteDigit() {
+  const input = document.getElementById('phoneNumber');
+  input.value = input.value.slice(0, -1);
+}
+
+function selectLead(phone) {
+  if (phone) {
+    document.getElementById('phoneNumber').value = phone;
+  }
+}
+
+function initiateCall() {
+  const phone = document.getElementById('phoneNumber').value.trim();
+  if (!phone) {
+    alert('Iltimos, telefon raqam kiriting!');
+    return;
+  }
+  
+  const callButton = document.getElementById('callButton');
+  const statusText = document.getElementById('statusText');
+  const callTimer = document.getElementById('callTimer');
+  const recordingIndicator = document.getElementById('recordingIndicator');
+  
+  // Update UI
+  callButton.classList.remove('call-btn-start');
+  callButton.classList.add('call-active');
+  callButton.innerHTML = '<i class="fa-solid fa-phone-slash"></i>';
+  callButton.onclick = endCall;
+  statusText.textContent = 'Qo\'ng\'iroq qilinmoqda...';
+  statusText.style.color = '#ffc107';
+  
+  // Create call record via AJAX
+  fetch('{% url "enrollment_call_initiate" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: 'to_number=' + encodeURIComponent(phone)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.call_sid) {
+      currentCallSid = data.call_sid;
+      statusText.textContent = 'Gaplashmoqda...';
+      statusText.style.color = '#28a745';
+      callTimer.style.display = 'block';
+      recordingIndicator.style.display = 'block';
+      
+      // Start timer
+      callStartTime = Date.now();
+      callTimerInterval = setInterval(updateTimer, 1000);
+      
+      // Update button to end call
+      callButton.classList.remove('call-active');
+      callButton.classList.add('call-btn-end');
+    } else {
+      statusText.textContent = data.error || 'Xatolik yuz berdi';
+      statusText.style.color = '#dc3545';
+      resetCallButton();
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    statusText.textContent = 'Xatolik: ' + error.message;
+    statusText.style.color = '#dc3545';
+    resetCallButton();
+  });
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+  const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+  const seconds = (elapsed % 60).toString().padStart(2, '0');
+  document.getElementById('callTimer').textContent = minutes + ':' + seconds;
+}
+
+function endCall() {
+  if (currentCallSid) {
+    // End call via AJAX
+    fetch('{% url "enrollment_call_end" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: 'call_sid=' + encodeURIComponent(currentCallSid)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Call ended:', data);
+    });
+  }
+  
+  // Reset UI
+  if (callTimerInterval) {
+    clearInterval(callTimerInterval);
+  }
+  
+  document.getElementById('callTimer').style.display = 'none';
+  document.getElementById('recordingIndicator').style.display = 'none';
+  document.getElementById('statusText').textContent = 'Tayyor';
+  document.getElementById('statusText').style.color = '#666';
+  
+  resetCallButton();
+  currentCallSid = null;
+}
+
+function resetCallButton() {
+  const callButton = document.getElementById('callButton');
+  callButton.classList.remove('call-active', 'call-btn-end');
+  callButton.classList.add('call-btn-start');
+  callButton.innerHTML = '<i class="fa-solid fa-phone"></i>';
+  callButton.onclick = initiateCall;
+}
+
+// Auto-refresh every 30 seconds
+setInterval(function() {
+  location.reload();
+}, 30000);
+</script>
 {% endblock %}

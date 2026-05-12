@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">🚪 Sinf: {{ classroom.name }}</h1>
+
+<!-- Info cards -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#D4A373;">{{ students.count }}</div>
+    <div style="font-size:13px;color:#666;">O'quvchilar</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#4ca653;">{{ classroom.capacity }}</div>
+    <div style="font-size:13px;color:#666;">Sig'im</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#2a5ec0;">{{ schedules.count }}</div>
+    <div style="font-size:13px;color:#666;">Darslar</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#a4333f;">{{ homeworks.count }}</div>
+    <div style="font-size:13px;color:#666;">Uy vazifalar</div>
+  </div>
+</div>
+
+<!-- Classroom info -->
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;margin-bottom:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-info-circle" style="color:#D4A373;"></i> Ma'lumotlar</h3>
+  <p><strong>Daraja:</strong> {{ classroom.grade.name }}</p>
+  <p><strong>O'quv yili:</strong> {{ classroom.academic_year.name }}</p>
+  <p><strong>Sinf rahbari:</strong> {{ classroom.homeroom_teacher|default:"—" }}</p>
+  <p><strong>Sig'im:</strong> {{ classroom.capacity }} o'quvchi</p>
+</div>
+
+<!-- Students -->
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;margin-bottom:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-users" style="color:#D4A373;"></i> O'quvchilar</h3>
+  {% if students %}
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr><th>Ism Familiya</th><th>Yoshi</th><th>Status</th><th>Amal</th></tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td><a href="{% url 'students_detail' s.pk %}">{{ s.full_name }}</a></td>
+        <td>{{ s.age }} yosh</td>
+        <td>{% if s.is_active %}<span class="badge badge-success">Faol</span>{% else %}<span class="badge badge-secondary">Nofaol</span>{% endif %}</td>
+        <td><a href="{% url 'students_detail' s.pk %}" class="btn btn-sm"><i class="fa-solid fa-eye"></i></a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">O'quvchilar yo'q.</p>
+  {% endif %}
+</div>
+
+<!-- Schedule -->
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;margin-bottom:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-calendar" style="color:#D4A373;"></i> Dars jadvali</h3>
+  {% if schedules %}
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr><th>Kun</th><th>Fan</th><th>O'qituvchi</th><th>Vaqt</th></tr>
+    </thead>
+    <tbody>
+      {% for s in schedules %}
+      <tr>
+        <td>{{ s.get_day_of_week_display }}</td>
+        <td>{{ s.subject.name }}</td>
+        <td>{{ s.teacher|default:"—" }}</td>
+        <td>{{ s.start_time }} — {{ s.end_time }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Dars jadvali yo'q.</p>
+  {% endif %}
+</div>
+
+<!-- Homework -->
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-book-open" style="color:#D4A373;"></i> Uy vazifalar</h3>
+  {% if homeworks %}
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr><th>Fan</th><th>Mavzu</th><th>Deadline</th><th>O'qituvchi</th></tr>
+    </thead>
+    <tbody>
+      {% for h in homeworks %}
+      <tr>
+        <td>{{ h.subject.name }}</td>
+        <td>{{ h.title }}</td>
+        <td>{{ h.due_date|date:"d.m.Y" }}</td>
+        <td>{{ h.teacher|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Uy vazifalar yo'q.</p>
+  {% endif %}
+</div>
+{% endblock %}

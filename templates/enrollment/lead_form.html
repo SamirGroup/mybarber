@@ -6,6 +6,7 @@
 <div class="card" style="max-width:700px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
   <form method="post">
     {% csrf_token %}
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user" style="color:#D4A373;"></i> Ota-ona ma'lumotlari</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div class="form-group">
         <label>Ism <span style="color:#dc3545;">*</span></label>
@@ -18,12 +19,15 @@
     </div>
     <div class="form-group">
       <label>Telefon <span style="color:#dc3545;">*</span></label>
-      <input type="tel" name="phone" class="form-control" placeholder="+998 90 000 00 00" required>
+      <input type="tel" name="phone" class="form-control" placeholder="+998 90 000 00 00" pattern="\+998[0-9]{9}" required>
+      <small style="color:#666;">O'zbekiston: +99890xxxxxxx</small>
     </div>
     <div class="form-group">
       <label>Email</label>
       <input type="email" name="email" class="form-control">
     </div>
+    
+    <h3 style="margin:24px 0 16px;"><i class="fa-solid fa-child" style="color:#D4A373;"></i> Bolaning ma'lumotlari</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div class="form-group">
         <label>Bolaning ismi</label>
@@ -45,8 +49,8 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Manba</label>
-        <select name="source" class="form-control">
+        <label>Manba <span style="color:#dc3545;">*</span></label>
+        <select name="source" class="form-control" required>
           <option value="">— Tanlang —</option>
           {% for s in sources %}
           <option value="{{ s.id }}">{{ s.name }}</option>

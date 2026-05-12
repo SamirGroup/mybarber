@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">{% if student %}✏️ O'quvchini tahrirlash{% else %}➕ Yangi o'quvchi{% endif %}</h1>
+
+<div class="card" style="max-width:900px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user" style="color:#D4A373;"></i> Shaxsiy ma'lumotlar</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label>Ism <span style="color:#dc3545;">*</span></label>
+        <input type="text" name="first_name" class="form-control" value="{{ student.first_name|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Familiya <span style="color:#dc3545;">*</span></label>
+        <input type="text" name="last_name" class="form-control" value="{{ student.last_name|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Otasining ismi</label>
+        <input type="text" name="middle_name" class="form-control" value="{{ student.middle_name|default:'' }}">
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label>Jinsi <span style="color:#dc3545;">*</span></label>
+        <select name="gender" class="form-control" required>
+          <option value="M" {% if student.gender == 'M' %}selected{% endif %}>O'g'il</option>
+          <option value="F" {% if student.gender == 'F' %}selected{% endif %}>Qiz</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tug'ilgan sana <span style="color:#dc3545;">*</span></label>
+        <input type="date" name="birth_date" class="form-control" value="{{ student.birth_date|date:'Y-m-d'|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Sinf</label>
+        <select name="classroom" class="form-control">
+          <option value="">— Tanlang —</option>
+          {% for c in classrooms %}
+          <option value="{{ c.id }}" {% if student.classroom.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <h3 style="margin:24px 0 16px;"><i class="fa-solid fa-id-card" style="color:#D4A373;"></i> Hujjat ma'lumotlari</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label>Metrika yoki ID karta raqami</label>
+        <input type="text" name="passport_or_id" class="form-control" value="{{ student.passport_or_id|default:'' }}" placeholder="AA1234567">
+      </div>
+      <div class="form-group">
+        <label>ERP maktab tizimidagi raqam</label>
+        <input type="text" name="erp_number" class="form-control" value="{{ student.erp_number|default:'' }}" placeholder="ERP-2025-1001">
+      </div>
+    </div>
+
+    <h3 style="margin:24px 0 16px;"><i class="fa-solid fa-users" style="color:#D4A373;"></i> Ota-ona ma'lumotlari</h3>
+    <div class="form-group">
+      <label>Ota-onalar</label>
+      <select name="parents" class="form-control" multiple size="5">
+        {% for p in parents %}
+        <option value="{{ p.id }}" {% if student and p in student.parents.all %}selected{% endif %}>{{ p.full_name }} — {{ p.phone }}</option>
+        {% endfor %}
+      </select>
+      <small style="color:#666;">Ctrl tugmasini bosib bir nechta ota-onani tanlang</small>
+    </div>
+
+    <h3 style="margin:24px 0 16px;"><i class="fa-solid fa-home" style="color:#D4A373;"></i> Qo'shimcha ma'lumotlar</h3>
+    <div class="form-group">
+      <label>Manzil</label>
+      <textarea name="address" class="form-control" rows="2">{{ student.address|default:'' }}</textarea>
+    </div>
+    <div class="form-group">
+      <label>Tibbiy eslatmalar</label>
+      <textarea name="medical_notes" class="form-control" rows="2">{{ student.medical_notes|default:'' }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" name="is_active" {% if not student or student.is_active %}checked{% endif %}>
+        Faol o'quvchi
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Saqlash</button>
+    <a href="{% if student %}{% url 'students_detail' student.pk %}{% else %}{% url 'students_list' %}{% endif %}" class="btn" style="margin-left:8px;">Bekor qilish</a>
+  </form>
+</div>
+{% endblock %}

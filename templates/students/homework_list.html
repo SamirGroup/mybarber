@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">📚 Uy vazifalar</h1>
+
+<div style="margin-bottom:24px;">
+  <a href="{% url 'students_homework_create' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi uy vazifa</a>
+</div>
+
+<!-- Filters -->
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;margin-bottom:24px;">
+  <form method="get" style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;">
+    <div>
+      <label>Sinf</label>
+      <select name="classroom" class="form-control">
+        <option value="">Barcha</option>
+        {% for c in classrooms %}
+        <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Fan</label>
+      <select name="subject" class="form-control">
+        <option value="">Barcha</option>
+        {% for s in subjects %}
+        <option value="{{ s.id }}">{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filtr</button>
+  </form>
+</div>
+
+<!-- Homework list -->
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  {% if homeworks %}
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr>
+        <th>Sinf</th>
+        <th>Fan</th>
+        <th>Mavzu</th>
+        <th>Tavsif</th>
+        <th>Deadline</th>
+        <th>O'qituvchi</th>
+        <th>Fayl</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in homeworks %}
+      <tr>
+        <td>{{ h.classroom.name }}</td>
+        <td>{{ h.subject.name }}</td>
+        <td><strong>{{ h.title }}</strong></td>
+        <td>{{ h.description|truncatewords:10 }}</td>
+        <td>{{ h.due_date|date:"d.m.Y" }}</td>
+        <td>{{ h.teacher|default:"—" }}</td>
+        <td>
+          {% if h.file %}
+          <a href="{{ h.file.url }}" target="_blank"><i class="fa-solid fa-download"></i></a>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Uy vazifalar yo'q.</p>
+  {% endif %}
+</div>
+{% endblock %}

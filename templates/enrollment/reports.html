@@ -12,7 +12,7 @@
       <tbody>
         {% for item in leads_by_status %}
         <tr>
-          <td>{{ item.status__label }}</td>
+          <td>{% if item.status == 'new' %}Yangi{% elif item.status == 'contacted' %}Bog'lanildi{% elif item.status == 'interested' %}Qiziqish bor{% elif item.status == 'appointment' %}Uchrashuv belgilangan{% elif item.status == 'registered' %}Ro'yxatdan o'tdi{% elif item.status == 'declined' %}Rad etildi{% else %}Noma'lum{% endif %}</td>
           <td><strong>{{ item.count }}</strong></td>
         </tr>
         {% empty %}
@@ -30,7 +30,7 @@
       <tbody>
         {% for item in applications_by_status %}
         <tr>
-          <td>{{ item.status__label }}</td>
+          <td>{% if item.status == 'draft' %}Qoralama{% elif item.status == 'submitted' %}Topshirildi{% elif item.status == 'under_review' %}Ko'rib chiqilmoqda{% elif item.status == 'documents_pending' %}Hujjatlar kutilmoqda{% elif item.status == 'assessment' %}Sinov{% elif item.status == 'approved' %}Qabul qilindi{% elif item.status == 'enrolled' %}Ro'yxatdan o'tdi{% elif item.status == 'rejected' %}Rad etildi{% elif item.status == 'waitlisted' %}Kutish ro'yxati{% else %}Noma'lum{% endif %}</td>
           <td><strong>{{ item.count }}</strong></td>
         </tr>
         {% empty %}

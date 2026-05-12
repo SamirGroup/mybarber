@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">🚪 Sinf xonalari</h1>
+
+<div style="margin-bottom:24px;">
+  <a href="{% url 'students_classroom_create' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi sinf yaratish</a>
+</div>
+
+<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr>
+        <th>Sinf nomi</th>
+        <th>Daraja</th>
+        <th>O'quv yili</th>
+        <th>Sinf rahbari</th>
+        <th>O'quvchilar</th>
+        <th>Sig'im</th>
+        <th>Amal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for classroom in classrooms %}
+      <tr>
+        <td><a href="{% url 'students_classroom_detail' classroom.pk %}"><strong>{{ classroom.name }}</strong></a></td>
+        <td>{{ classroom.grade.name }}</td>
+        <td>{{ classroom.academic_year.name }}</td>
+        <td>{{ classroom.homeroom_teacher|default:"—" }}</td>
+        <td>{{ classroom.students.count }}</td>
+        <td>{{ classroom.capacity }}</td>
+        <td>
+          <a href="{% url 'students_classroom_detail' classroom.pk %}" class="btn btn-sm"><i class="fa-solid fa-eye"></i></a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" style="text-align:center;color:#888;">Sinf xonalari yo'q.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

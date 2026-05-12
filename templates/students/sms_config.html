@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">📱 SMS Sozlamalari — Qarzdorlar uchun</h1>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-cog" style="color:#D4A373;"></i> Asosiy sozlamalar</h3>
+    
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Har oyning qaysi kunida SMS jo'natilsin? <span style="color:#dc3545;">*</span></label>
+        <input type="number" name="day_of_month" class="form-control" value="{{ config.day_of_month }}" min="1" max="28" required>
+        <small style="color:#666;">1 dan 28 gacha raqam kiriting</small>
+      </div>
+      
+      <div class="form-group">
+        <label>
+          <input type="checkbox" name="is_active" {% if config.is_active %}checked{% endif %}>
+          SMS tizimi faol
+        </label>
+      </div>
+      
+      <div class="form-group">
+        <label>SMS shablon <span style="color:#dc3545;">*</span></label>
+        <textarea name="message_template" class="form-control" rows="5" required>{{ config.message_template }}</textarea>
+        <small style="color:#666;">
+          Quyidagi o'zgaruvchilardan foydalaning:<br>
+          <code>{parent_name}</code> — Ota-ona ismi<br>
+          <code>{student_name}</code> — O'quvchi ismi<br>
+          <code>{contract_number}</code> — Shartnoma raqami<br>
+          <code>{debt_amount}</code> — Qarz miqdori
+        </small>
+      </div>
+      
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Saqlash</button>
+    </form>
+  </div>
+
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-info-circle" style="color:#D4A373;"></i> Ma'lumot</h3>
+    
+    <div style="padding:16px;background:#e3f2fd;border-radius:8px;margin-bottom:16px;">
+      <p><strong>Joriy sozlama:</strong></p>
+      <p>SMS har oyning <strong>{{ config.day_of_month }}-kuni</strong> avtomatik yuboriladi.</p>
+      <p>Status: {% if config.is_active %}<span class="badge badge-success">Faol</span>{% else %}<span class="badge badge-secondary">Nofaol</span>{% endif %}</p>
+    </div>
+    
+    <div style="padding:16px;background:#fff3cd;border-radius:8px;margin-bottom:16px;">
+      <p><strong><i class="fa-solid fa-exclamation-triangle"></i> Diqqat!</strong></p>
+      <p>SMS faqat qarzdor o'quvchilarning ota-onalariga yuboriladi.</p>
+      <p>Bir ota-onada bir necha farzand bo'lsa, barcha farzandlar uchun bitta SMS yuboriladi.</p>
+    </div>
+    
+    <form method="post" action="{% url 'students_sms_send' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary" onclick="return confirm('Hozir barcha qarzdorlarga SMS yubormoqchimisiz?')">
+        <i class="fa-solid fa-paper-plane"></i> Hozir SMS yuborish
+      </button>
+    </form>
+    
+    <a href="{% url 'students_sms_logs' %}" class="btn" style="margin-top:12px;">
+      <i class="fa-solid fa-list"></i> SMS tarixi
+    </a>
+  </div>
+</div>
+
+<!-- Preview -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-eye" style="color:#D4A373;"></i> SMS ko'rinishi (namuna)</h3>
+  <div style="padding:16px;background:#f5f5f5;border-radius:8px;font-family:monospace;">
+    {{ config.message_template|safe }}
+  </div>
+  <p style="margin-top:12px;color:#666;font-size:13px;">
+    Misol: Hurmatli Karimov Aziz! Farzandingiz Karimov Ali uchun SH-2025-001 shartnoma bo'yicha 500000 so'm qarzdorlik mavjud. Iltimos, to'lovni amalga oshiring.
+  </p>
+</div>
+{% endblock %}

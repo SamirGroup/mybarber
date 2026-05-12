@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Call Centre{% endblock %} - Bunyod School</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-bg: #1f2937;
+            --light-bg: #f9fafb;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .status-online {
+            background-color: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-offline {
+            background-color: #6b7280;
+        }
+        
+        .status-busy {
+            background-color: var(--danger-color);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .call-notification {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .dial-button {
+            transition: all 0.2s;
+        }
+        
+        .dial-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .dial-button:active {
+            transform: scale(0.95);
+        }
+        
+        .recording-indicator {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-phone-volume text-blue-600 text-2xl mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">Call Centre</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="{% url 'enrollment_dashboard' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-home mr-2"></i> Dashboard
+                        </a>
+                        <a href="{% url 'enrollment_call_centre' %}" class="border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-headset mr-2"></i> Call Panel
+                        </a>
+                        <a href="{% url 'enrollment_lead_list' %}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-users mr-2"></i> Mijozlar
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <!-- Agent Status -->
+                    <div class="mr-4 flex items-center">
+                        <span class="mr-2 text-sm text-gray-600">Status:</span>
+                        <div id="agent-status-indicator" class="flex items-center">
+                            <span class="status-offline h-3 w-3 rounded-full mr-2"></span>
+                            <span id="agent-status-text" class="text-sm font-medium">Offline</span>
+                        </div>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="ml-3 relative">
+                        <div class="flex items-center">
+                            <span class="text-sm text-gray-700 mr-2">{{ user.get_full_name|default:user.username }}</span>
+                            <a href="{% url 'logout' %}" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="rounded-md p-4 {% if message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium">{{ message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- WebSocket Connection -->
+    <script>
+        // Global WebSocket connection
+        let ws = null;
+        let reconnectInterval = null;
+        
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/call-centre/`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function(e) {
+                console.log('WebSocket connected');
+                clearInterval(reconnectInterval);
+                
+                // Send ping every 30 seconds
+                setInterval(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'ping',
+                            timestamp: Date.now()
+                        }));
+                    }
+                }, 30000);
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+            
+            ws.onclose = function(e) {
+                console.log('WebSocket disconnected');
+                // Reconnect after 5 seconds
+                reconnectInterval = setInterval(() => {
+                    console.log('Attempting to reconnect...');
+                    connectWebSocket();
+                }, 5000);
+            };
+        }
+        
+        function handleWebSocketMessage(data) {
+            console.log('WebSocket message:', data);
+            
+            switch(data.type) {
+                case 'connection_established':
+                    console.log('Connection established');
+                    break;
+                    
+                case 'new_call':
+                    showIncomingCallNotification(data);
+                    break;
+                    
+                case 'call_status_update':
+                    updateCallStatus(data);
+                    break;
+                    
+                case 'agent_status_changed':
+                    updateAgentStatus(data);
+                    break;
+                    
+                case 'pong':
+                    // Ping response
+                    break;
+                    
+                default:
+                    console.log('Unknown message type:', data.type);
+            }
+        }
+        
+        function updateAgentStatus(data) {
+            const indicator = document.querySelector('#agent-status-indicator span:first-child');
+            const text = document.getElementById('agent-status-text');
+            
+            if (indicator && text) {
+                indicator.className = `status-${data.status} h-3 w-3 rounded-full mr-2`;
+                text.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+            }
+        }
+        
+        function showIncomingCallNotification(data) {
+            // This will be implemented in call panel
+            if (typeof handleIncomingCall === 'function') {
+                handleIncomingCall(data);
+            }
+        }
+        
+        function updateCallStatus(data) {
+            // This will be implemented in call panel
+            if (typeof handleCallStatusUpdate === 'function') {
+                handleCallStatusUpdate(data);
+            }
+        }
+        
+        // Connect on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            connectWebSocket();
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
