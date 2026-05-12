@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">📞 Call Centre — Bunyod Non Sharjah School</h1>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Agent status -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-headset" style="color:#D4A373;"></i> Agent holati</h3>
+    <p>Agent: <strong>{{ request.user.username }}</strong></p>
+    <p>Status: {% if agent.is_available %}<span class="badge badge-success">Mavjud</span>{% else %}<span class="badge badge-warning">Band</span>{% endif %}</p>
+    <p>Ichki raqam: {{ agent.extension|default:"—" }}</p>
+    <a href="{% url 'enrollment_call_initiate' %}" class="btn btn-primary" style="margin-top:12px;">
+      <i class="fa-solid fa-phone"></i> Qo'ng'iroq qilish
+    </a>
+  </div>
+
+  <!-- Active calls -->
+    <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-phone-volume" style="color:#D4A373;"></i> Faol qo'ng'iroqlar</h3>
+    {% if active_calls %}
+      {% for call in active_calls %}
+      <div style="padding:12px;background:#fef4e4;border-radius:8px;margin-bottom:8px;">
+        <strong>{{ call.callee_number }}</strong> — {{ call.get_status_display }}<br>
+        <small>{{ call.created_at|date:"H:i" }}</small>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:#888;">Hozircha faol qo'ng'iroq yo'q.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent calls -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-clock-rotate-left" style="color:#D4A373;"></i> So'nggi qo'ng'iroqlar</h3>
+  {% if recent_calls %}
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr>
+        <th>Yo'nalish</th>
+        <th>Raqam</th>
+        <th>Status</th>
+        <th>Davomiyligi</th>
+        <th>Lead</th>
+        <th>Sana</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for call in recent_calls %}
+      <tr>
+        <td>{{ call.get_direction_display }}</td>
+        <td>{{ call.callee_number }}</td>
+        <td><span class="badge badge-{% if call.status == 'completed' %}success{% elif call.status == 'missed' %}danger{% else %}warning{% endif %}">{{ call.get_status_display }}</span></td>
+        <td>{{ call.duration_seconds|default:"—" }} s</td>
+        <td>{% if call.lead %}<a href="{% url 'enrollment_lead_detail' call.lead.pk %}">{{ call.lead.full_name }}</a>{% else %}—{% endif %}</td>
+        <td>{{ call.created_at|date:"d M H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Qo'ng'iroqlar tarixi bo'sh.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

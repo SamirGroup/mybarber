@@ -1,173 +1,404 @@
+{% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ request.LANGUAGE_CODE|default:'uz' }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barbershop CRM - {% block title %}Dashboard{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --danger-color: #e74c3c;
-            --warning-color: #f39c12;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-        }
-        
-        .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-        
-        .sidebar .nav-link {
-            color: white;
-            padding: 12px 20px;
-            margin: 5px 15px;
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-        
-        .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(5px);
-        }
-        
-        .sidebar .nav-link.active {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
-        }
-        
-        .main-content {
-            padding: 20px;
-        }
-        
-        .navbar-top {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15px 20px;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .stat-card h3 {
-            font-size: 2rem;
-            margin: 0;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                min-height: auto;
-                position: relative;
-            }
-        }
-    </style>
-    {% block extra_css %}{% endblock %}
+    <title>Sharjah School — CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
 </head>
+
 <body>
-    {% if user.is_authenticated %}
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-2 p-0 sidebar">
-                <div class="text-center py-4">
-                    <i class="fas fa-cut fa-3x text-white"></i>
-                    <h4 class="text-white mt-2">BarberCRM</h4>
-                </div>
-                <nav class="nav flex-column">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
-                    </a>
-                    <a class="nav-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'client_list' %}">
-                        <i class="fas fa-users"></i> Clients
-                    </a>
-                    <a class="nav-link {% if 'barber' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'barber_list' %}">
-                        <i class="fas fa-user-md"></i> Barbers
-                    </a>
-                    <a class="nav-link {% if 'service' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'service_list' %}">
-                        <i class="fas fa-cut"></i> Services
-                    </a>
-                    <a class="nav-link {% if 'booking' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'booking_list' %}">
-                        <i class="fas fa-calendar-check"></i> Bookings
-                    </a>
-                    <a class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'reports' %}">
-                        <i class="fas fa-chart-line"></i> Reports
-                    </a>
-                    <hr class="bg-light">
-                    <a class="nav-link" href="{% url 'logout' %}">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </nav>
+    <div class="app-container">
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-school logo-icon"> </i>
+                <h2>Sharjah<span class="highlight">School</span></h2>
+                <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-10 p-0">
-                <div class="navbar-top d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h4>
-                    <div>
-                        <span class="me-3">
-                            <i class="fas fa-user-circle"></i> {{ user.username }}
-                            {% if user.is_staff %}<span class="badge bg-primary ms-2">Admin</span>{% endif %}
+
+            <ul class="nav-links">
+
+                <!-- Dashboard: superadmin only -->
+                {% if is_superadmin %}
+                <li>
+                    <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span data-i18n="nav_dashboard">{% trans "Boshqaruv paneli" %}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/" class="{% if '/enrollment/' in request.path and not '/enrollment/leads' in request.path and not '/enrollment/applications' in request.path and not '/enrollment/call-centre' in request.path and not '/enrollment/reports' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>Qabul bo'limi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Leadlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/applications/" class="{% if '/enrollment/applications' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>Arizalar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-phone-volume"></i>
+                        <span>Call Centre</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chart-bar"></i>
+                        <span>Hisobotlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
+                        <i class="fa-solid fa-industry"></i>
+                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_seller and not is_superadmin %}
+                <li>
+                    <a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-cash-register"></i>
+                        <span data-i18n="nav_sales">Sotuv</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
+                        <i class="fa-solid fa-industry"></i>
+                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/manage/"
+                        class="{% if '/production/manage' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-box-open"></i>
+                        <span data-i18n="nav_products">Mahsulotlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/manage/?tab=tab-categories" style="padding-left:32px;font-size:13px;"
+                        class="{% if '/production/manage' in request.path and 'tab=tab-categories' in request.get_full_path %}active{% endif %}">
+                        <i class="fa-solid fa-folder"></i>
+                        <span>Kategoriyalar</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_production_mgr and not is_superadmin %}
+                <li>
+                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
+                        <i class="fa-solid fa-industry"></i>
+                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/manage/"
+                        class="{% if '/production/manage' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-box-open"></i>
+                        <span data-i18n="nav_products">Mahsulotlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/manage/?tab=tab-categories" style="padding-left:32px;font-size:13px;"
+                        class="{% if '/production/manage' in request.path and 'tab=tab-categories' in request.get_full_path %}active{% endif %}">
+                        <i class="fa-solid fa-folder"></i>
+                        <span>Kategoriyalar</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_accountant and not is_superadmin %}
+                <li>
+                    <a href="/accounting/" class="{% if '/accounting/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span data-i18n="nav_accounting">Buxgalteriya</span>
+                    </a>
+                </li>
+                {% if not is_accountant_only %}
+                <li>
+                    <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span data-i18n="nav_dashboard">Boshqaruv paneli</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% endif %}
+
+                {% if is_enrollment and not is_superadmin %}
+                <li>
+                    <a href="/enrollment/" class="{% if '/enrollment/' in request.path and not '/enrollment/leads' in request.path and not '/enrollment/applications' in request.path and not '/enrollment/call-centre' in request.path and not '/enrollment/reports' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>Qabul bo'limi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Leadlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/applications/" class="{% if '/enrollment/applications' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>Arizalar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-phone-volume"></i>
+                        <span>Call Centre</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chart-bar"></i>
+                        <span>Hisobotlar</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_hr and not is_superadmin %}
+                <li>
+                    <a href="/hr/" class="{% if '/hr/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-users"></i>
+                        <span data-i18n="nav_hr">HR Bo'limi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/hr/?tab=positions" class="{% if '/hr/' in request.path and 'tab=positions' in request.get_full_path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-briefcase"></i>
+                        <span>Lavozimlar</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_branch_admin and not is_superadmin %}
+                <li>
+                    <a href="/branches/" class="{% if '/branches/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-store"></i>
+                        <span>{% if user_branch %}{{ user_branch.name }}{% else %}<span
+                                data-i18n="nav_branches">Filiallar</span>{% endif %}</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_superadmin %}
+                <li>
+                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
+                        <i class="fa-solid fa-industry"></i>
+                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/manage/"
+                        class="{% if '/production/manage' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-box-open"></i>
+                        <span data-i18n="nav_products">Mahsulotlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/production/manage/?tab=tab-categories" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-folder"></i>
+                        <span>Kategoriyalar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-cash-register"></i>
+                        <span data-i18n="nav_sales">Sotuv</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/branches/" class="{% if '/branches/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-store"></i>
+                        <span data-i18n="nav_branches">Filiallar</span>
+                    </a>
+                </li>
+                <!-- Buxgalteriya: superadmin uchun har doim sub-menular -->
+                {% include 'includes/accounting_sidebar_block.html' %}
+                <li>
+                    <a href="/hr/" class="{% if '/hr/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-users"></i>
+                        <span data-i18n="nav_hr">HR Bo'limi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/hr/?tab=positions" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-briefcase"></i>
+                        <span>Lavozimlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin-users/" class="{% if '/admin-users/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <span data-i18n="nav_admin">Foydalanuvchilar</span>
+                    </a>
+                </li>
+                {% endif %}
+
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="lang-label"><i class="fa-solid fa-globe"></i> <span>Til / Язык</span></div>
+                <div class="lang-switcher">
+                    <button class="lang-btn" id="gt-btn-uz" data-lang="uz" onclick="gtSwitchLang('uz')" title="O'zbek">UZ</button>
+                    <button class="lang-btn" id="gt-btn-ru" data-lang="ru" onclick="gtSwitchLang('ru')" title="Русский">RU</button>
+                </div>
+                <!-- Google Translate widget (yashirin) -->
+                <div id="google_translate_element" style="display:none;"></div>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="mobileMenuToggle" type="button" aria-label="Open navigation menu"
+                        aria-controls="appSidebar" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="breadcrumb">{% block breadcrumb %}{% endblock %}</div>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-profile">
+                        <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                        <span class="user-name">
+                            {{ request.user.username }}
+                            {% if is_superadmin %}<span class="badge badge-danger"
+                                style="font-size:11px;">SuperAdmin</span>
+                            {% elif user_branch %}<span class="badge badge-info" style="font-size:11px;">{{
+                                user_branch.name }}</span>
+                            {% elif request.user.groups.all.0 %}<span class="badge badge-warning"
+                                style="font-size:11px;">{{ request.user.groups.all.0.name }}</span>
+                            {% endif %}
                         </span>
+                        <a href="/logout/" style="color:#dc3545;font-size:17px;" title="Chiqish">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="main-content">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    {% block content %}{% endblock %}
+            </header>
+
+            <div class="content-wrapper">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i
+                        class="fa-solid fa-{% if message.tags == 'success' %}circle-check{% elif message.tags == 'error' %}circle-xmark{% else %}triangle-exclamation{% endif %}"></i>
+                    {{ message }}
                 </div>
+                {% endfor %}
+                {% endif %}
+                {% block content %}{% endblock %}
             </div>
-        </div>
+        </main>
     </div>
-    {% else %}
-        {% block content_login %}{% endblock %}
-    {% endif %}
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    {% block extra_js %}{% endblock %}
+
+    <script src="{% static 'js/i18n.js' %}?v=3.1"></script>
+    {% block extra_scripts %}{% endblock %}
+    <script src="{% static 'js/main.js' %}?v=4"></script>
+
+    <!-- Google Translate -->
+    <script>
+        function gtSetCookie(lang) {
+            var val = '/uz/' + lang;
+            var d = new Date();
+            d.setFullYear(d.getFullYear() + 1);
+            var exp = d.toUTCString();
+            document.cookie = 'googtrans=' + val + '; expires=' + exp + '; path=/';
+            document.cookie = 'googtrans=' + val + '; expires=' + exp + '; path=/; domain=.' + location.hostname;
+        }
+
+        function gtClearCookie() {
+            var exp = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
+            document.cookie = 'googtrans=; ' + exp + '; path=/';
+            document.cookie = 'googtrans=; ' + exp + '; path=/; domain=.' + location.hostname;
+            document.cookie = 'googtrans=; ' + exp + '; path=/; domain=' + location.hostname;
+        }
+
+        function gtSwitchLang(lang) {
+            document.querySelectorAll('.lang-btn').forEach(function (b) { b.classList.remove('active'); });
+            var btn = document.getElementById('gt-btn-' + lang);
+            if (btn) btn.classList.add('active');
+            localStorage.setItem('erp_gt_lang', lang);
+            localStorage.setItem('erp_lang', lang);
+            if (lang === 'uz') {
+                gtClearCookie();
+            } else {
+                gtSetCookie(lang);
+            }
+            location.reload();
+        }
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'uz',
+                includedLanguages: 'uz,ru',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var saved = localStorage.getItem('erp_gt_lang') || 'uz';
+            var btn = document.getElementById('gt-btn-' + saved);
+            if (btn) btn.classList.add('active');
+        });
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
+    <style>
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        .skiptranslate>iframe {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .goog-te-gadget {
+            font-size: 0 !important;
+        }
+
+        .goog-te-gadget>span {
+            display: none !important;
+        }
+
+        #google_translate_element {
+            display: none !important;
+        }
+
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
+            display: none !important;
+        }
+
+        .VIpgJd-ZVi9od-aZ2wEe {
+            display: none !important;
+        }
+    </style>
 </body>
+
 </html>

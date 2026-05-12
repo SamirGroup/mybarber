@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">📄 Ariza: {{ application.student_full_name }}</h1>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Student info -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user-graduate" style="color:#D4A373;"></i> O'quvchi ma'lumotlari</h3>
+    <p><strong>Ism:</strong> {{ application.student_full_name }}</p>
+    <p><strong>Tug'ilgan sana:</strong> {{ application.student_dob|default:"—" }}</p>
+    <p><strong>Jins:</strong> {% if application.student_gender == 'M' %}O'g'il{% else %}Qiz{% endif %}</p>
+    <p><strong>Ariza sinfi:</strong> {{ application.applying_grade|default:"—" }}</p>
+    <p><strong>Oldingi maktab:</strong> {{ application.previous_school|default:"—" }}</p>
+    <p><strong>Tibbiy eslatmalar:</strong> {{ application.medical_notes|default:"—"|linebreaksbr }}</p>
+  </div>
+
+  <!-- Parent info -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user-group" style="color:#D4A373;"></i> Ota-ona ma'lumotlari</h3>
+    <p><strong>Ism:</strong> {{ application.parent_full_name }}</p>
+    <p><strong>Aloqa:</strong> {{ application.parent_relation }}</p>
+    <p><strong>Telefon:</strong> {{ application.parent_phone }}</p>
+    <p><strong>Email:</strong> {{ application.parent_email|default:"—" }}</p>
+  </div>
+</div>
+
+<!-- Status & actions -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-bolt" style="color:#D4A373;"></i> Amallar</h3>
+
+  <form method="post" style="margin-bottom:16px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_status">
+    <div style="display:flex;gap:8px;">
+      <select name="status" class="form-control">
+        {% for value,label in status_choices %}
+        <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Statusni yangilash</button>
+    </div>
+  </form>
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_notes">
+    <textarea name="notes" class="form-control" rows="3" placeholder="Eslatma qo'shish...">{{ application.notes }}</textarea>
+    <button type="submit" class="btn" style="margin-top:8px;">Eslatmani saqlash</button>
+  </form>
+</div>
+{% endblock %}

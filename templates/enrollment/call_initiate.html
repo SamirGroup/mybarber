@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">📱 Qo'ng'iroq qilish</h1>
+
+<div class="card" style="max-width:600px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <form method="post" action="{% url 'enrollment_call_initiate' %}">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>Telefon raqam</label>
+      <input type="tel" name="to_number" class="form-control" placeholder="+998 90 000 00 00" required style="font-size:18px;padding:14px;">
+    </div>
+    <div class="form-group">
+      <label>Lead (ixtiyoriy)</label>
+      <select name="lead_id" class="form-control">
+        <option value="">— Lead tanlang —</option>
+        {% for lead in leads %}
+        <option value="{{ lead.pk }}">{{ lead.full_name }} — {{ lead.phone }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary" style="font-size:16px;padding:12px 24px;">
+      <i class="fa-solid fa-phone"></i> Qo'ng'iroq qilish
+    </button>
+    <a href="{% url 'enrollment_call_centre' %}" class="btn" style="margin-left:12px;">Bekor qilish</a>
+  </form>
+</div>
+{% endblock %}

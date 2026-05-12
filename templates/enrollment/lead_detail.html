@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">👤 Lead: {{ lead.full_name }}</h1>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Lead info -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user" style="color:#D4A373;"></i> Ma'lumotlar</h3>
+    <p><strong>Telefon:</strong> {{ lead.phone }}</p>
+    <p><strong>Email:</strong> {{ lead.email|default:"—" }}</p>
+    <p><strong>Bola:</strong> {{ lead.child_name|default:"—" }} ({{ lead.child_age|default:"—" }} yosh)</p>
+    <p><strong>Qiziqish sinfi:</strong> {{ lead.interested_grade|default:"—" }}</p>
+    <p><strong>Manba:</strong> {{ lead.source|default:"—" }}</p>
+    <p><strong>Meta Lead ID:</strong> {{ lead.meta_lead_id|default:"—" }}</p>
+    <p><strong>Status:</strong> <span class="badge badge-{% if lead.status == 'new' %}info{% elif lead.status == 'registered' %}success{% elif lead.status == 'declined' %}danger{% else %}warning{% endif %}">{{ lead.get_status_display }}</span></p>
+    <p><strong>Agent:</strong> {{ lead.assigned_to|default:"Biriktirilmagan" }}</p>
+    <p><strong>Eslatmalar:</strong> {{ lead.notes|default:"—"|linebreaksbr }}</p>
+  </div>
+
+  <!-- Actions -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-bolt" style="color:#D4A373;"></i> Amallar</h3>
+
+    <form method="post" style="margin-bottom:16px;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_status">
+      <div style="display:flex;gap:8px;">
+        <select name="status" class="form-control">
+          {% for value,label in status_choices %}
+          <option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Yangilash</button>
+      </div>
+    </form>
+
+    <form method="post" style="margin-bottom:16px;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="assign">
+      <div style="display:flex;gap:8px;">
+        <select name="agent_id" class="form-control">
+          <option value="">— Agent tanlang —</option>
+          {% for agent in agents %}
+          <option value="{{ agent.id }}">{{ agent.username }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Biriktirish</button>
+      </div>
+    </form>
+
+    <form method="post" style="margin-bottom:16px;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_notes">
+      <textarea name="notes" class="form-control" rows="3" placeholder="Eslatma qo'shish...">{{ lead.notes }}</textarea>
+      <button type="submit" class="btn" style="margin-top:8px;">Eslatmani saqlash</button>
+    </form>
+
+    <a href="{% url 'enrollment_application_create' lead.pk %}" class="btn btn-success" style="display:block;text-align:center;"><i class="fa-solid fa-file-lines"></i> Ariza yaratish</a>
+  </div>
+</div>
+
+<!-- Calls history -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-phone" style="color:#D4A373;"></i> Qo'ng'iroqlar tarixi</h3>
+  {% if calls %}
+  <table class="data-table" style="width:100%;">
+    <thead><tr><th>Yo'nalish</th><th>Raqam</th><th>Status</th><th>Davomiyligi</th><th>Sana</th></tr></thead>
+    <tbody>
+      {% for call in calls %}
+      <tr>
+        <td>{{ call.get_direction_display }}</td>
+        <td>{{ call.callee_number }}</td>
+        <td><span class="badge badge-{% if call.status == 'completed' %}success{% elif call.status == 'missed' %}danger{% else %}warning{% endif %}">{{ call.get_status_display }}</span></td>
+        <td>{{ call.duration_seconds|default:"—" }} s</td>
+        <td>{{ call.created_at|date:"d M H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Qo'ng'iroqlar yo'q.</p>
+  {% endif %}
+</div>
+
+<!-- Applications -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-file-lines" style="color:#D4A373;"></i> Arizalar</h3>
+  {% if applications %}
+  <table class="data-table" style="width:100%;">
+    <thead><tr><th>Bola</th><th>Sinf</th><th>Status</th><th>Sana</th></tr></thead>
+    <tbody>
+      {% for app in applications %}
+      <tr>
+        <td><a href="{% url 'enrollment_application_detail' app.pk %}">{{ app.student_full_name }}</a></td>
+        <td>{{ app.applying_grade|default:"—" }}</td>
+        <td><span class="badge badge-{% if app.status == 'enrolled' %}success{% elif app.status == 'approved' %}info{% else %}warning{% endif %}">{{ app.get_status_display }}</span></td>
+        <td>{{ app.created_at|date:"d M" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Arizalar yo'q.</p>
+  {% endif %}
+</div>
+{% endblock %}

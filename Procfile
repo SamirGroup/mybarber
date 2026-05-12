@@ -1,1 +1,1 @@
-web: gunicorn barbershop_crm.wsgi --log-file -
+web: gunicorn bakery_erp.wsgi --log-file -

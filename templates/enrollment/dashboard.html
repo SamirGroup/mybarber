@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;">🎓 Qabul bo'limi — Bunyod Non Sharjah School</h1>
+
+<!-- KPI cards -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;">
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#D4A373;">{{ leads_total }}</div>
+    <div style="font-size:13px;color:#666;">Jami leadlar</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#4ca653;">{{ leads_new }}</div>
+    <div style="font-size:13px;color:#666;">Yangi leadlar</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#2a5ec0;">{{ applications_total }}</div>
+    <div style="font-size:13px;color:#666;">Jami arizalar</div>
+  </div>
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
+    <div style="font-size:32px;font-weight:800;color:#a4333f;">{{ applications_pending }}</div>
+    <div style="font-size:13px;color:#666;">Kutilayotgan arizalar</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Recent leads -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user-plus" style="color:#D4A373;"></i> So'nggi leadlar</h3>
+    {% if recent_leads %}
+    <table class="data-table" style="width:100%;">
+      <thead>
+        <tr><th>Ism</th><th>Telefon</th><th>Status</th><th>Sana</th></tr>
+      </thead>
+      <tbody>
+        {% for lead in recent_leads %}
+        <tr>
+          <td><a href="{% url 'enrollment_lead_detail' lead.pk %}">{{ lead.full_name }}</a></td>
+          <td>{{ lead.phone }}</td>
+          <td><span class="badge badge-{% if lead.status == 'new' %}info{% elif lead.status == 'registered' %}success{% else %}warning{% endif %}">{{ lead.get_status_display }}</span></td>
+          <td>{{ lead.created_at|date:"d M" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'enrollment_lead_list' %}" style="display:block;margin-top:12px;text-align:center;color:#D4A373;font-weight:600;">Barcha leadlar →</a>
+    {% else %}
+    <p style="color:#888;">Leadlar hali mavjud emas.</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent applications -->
+  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-file-lines" style="color:#D4A373;"></i> So'nggi arizalar</h3>
+    {% if recent_applications %}
+    <table class="data-table" style="width:100%;">
+      <thead>
+        <tr><th>Bola</th><th>Sinf</th><th>Status</th><th>Sana</th></tr>
+      </thead>
+      <tbody>
+        {% for app in recent_applications %}
+        <tr>
+          <td><a href="{% url 'enrollment_application_detail' app.pk %}">{{ app.student_full_name }}</a></td>
+          <td>{{ app.applying_grade|default:"—" }}</td>
+          <td><span class="badge badge-{% if app.status == 'enrolled' %}success{% elif app.status == 'approved' %}info{% else %}warning{% endif %}">{{ app.get_status_display }}</span></td>
+          <td>{{ app.created_at|date:"d M" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'enrollment_application_list' %}" style="display:block;margin-top:12px;text-align:center;color:#D4A373;font-weight:600;">Barcha arizalar →</a>
+    {% else %}
+    <p style="color:#888;">Arizalar hali mavjud emas.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent calls -->
+<div class="card" style="margin-top:24px;background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
+  <h3 style="margin-bottom:16px;"><i class="fa-solid fa-phone-volume" style="color:#D4A373;"></i> So'nggi qo'ng'iroqlar</h3>
+  {% if recent_calls %}
+  <table class="data-table" style="width:100%;">
+    <thead>
+      <tr><th>Yo'nalish</th><th>Raqam</th><th>Status</th><th>Davomiyligi</th><th>Sana</th></tr>
+    </thead>
+    <tbody>
+      {% for call in recent_calls %}
+      <tr>
+        <td>{{ call.get_direction_display }}</td>
+        <td>{{ call.callee_number }}</td>
+        <td><span class="badge badge-{% if call.status == 'completed' %}success{% elif call.status == 'missed' %}danger{% else %}warning{% endif %}">{{ call.get_status_display }}</span></td>
+        <td>{{ call.duration_seconds|default:"—" }} s</td>
+        <td>{{ call.created_at|date:"d M H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;">Qo'ng'iroqlar tarixi bo'sh.</p>
+  {% endif %}
+</div>
+
+<!-- Quick actions -->
+<div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+  <a href="{% url 'enrollment_lead_create' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi lead</a>
+  <a href="{% url 'enrollment_application_create' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi ariza</a>
+  <a href="{% url 'enrollment_call_centre' %}" class="btn btn-primary"><i class="fa-solid fa-phone"></i> Call Centre</a>
+  <a href="{% url 'enrollment_reports' %}" class="btn"><i class="fa-solid fa-chart-bar"></i> Hisobotlar</a>
+</div>
+{% endblock %}
