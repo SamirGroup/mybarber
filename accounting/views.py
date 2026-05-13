@@ -11,7 +11,7 @@ from branches.models import BranchSale
 from sales.models import Sale
 
 from .models import Account, CashRegister, ExpenseCategory, JournalEntry, JournalLine, Supplier, Transaction
-from . import chart_data, services
+from . import chart_data, services, online_payments
 
 
 def _can_access(user, *roles):

@@ -97,6 +97,7 @@
                     <option value="seller">🛒 Sotuvchi</option>
                     <option value="production_manager">🏭 Ishlab chiqarish menejer</option>
                     <option value="branch_admin">🏪 Filial Admini</option>
+                    <option value="students_manager">🎓 O'quv bo'limi</option>
                 </select>
             </div>
             <div class="form-group" id="branchGroup" style="display:none;">
@@ -156,6 +157,7 @@
                                 {% elif g == 'seller' %}<span class="badge badge-warning">Sotuvchi</span>
                                 {% elif g == 'production_manager' %}<span class="badge badge-info">Ishlab chiqarish</span>
                                 {% elif g == 'branch_admin' %}<span class="badge badge-warning">Filial Admin</span>
+                                {% elif g == 'students_manager' %}<span class="badge badge-success">O'quv bo'limi</span>
                                 {% else %}{{ g }}{% endif %}
                             {% endwith %}
                         {% else %}<span style="color:#aaa;">—</span>{% endif %}

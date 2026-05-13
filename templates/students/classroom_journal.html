@@ -3,13 +3,9 @@
 
 {% block extra_head %}
 <style>
-  .lesson-card {
-    border-radius: 14px; padding: 14px 18px;
-    border: 2px solid #e2e8f0; background: #fff;
-    transition: border-color .15s;
-  }
-  .lesson-card.active { border-color: #1a73e8; background: #eff6ff; }
-  .lesson-card.next { border-color: #f59e0b; background: #fffbeb; }
+  .schedule-table table { border-radius: 10px; overflow: hidden; border: 1px solid #c8ddd6; }
+  .schedule-table tr:last-child { border-bottom: none !important; }
+  .schedule-table tr:hover td { background: #f0faf7 !important; }
   .status-btn {
     width: 36px; height: 36px; border-radius: 50%; border: 2px solid #e2e8f0;
     cursor: pointer; font-size: 13px; font-weight: 700; transition: all .12s;
@@ -19,12 +15,12 @@
   .status-btn.absent  { background: #fee2e2; border-color: #dc2626; color: #b91c1c; }
   .status-btn.late    { background: #fef9c3; border-color: #ca8a04; color: #92400e; }
   .status-btn.excused { background: #f1f5f9; border-color: #64748b; color: #475569; }
-  .student-row:hover { background: #f8fafc; }
-  .day-tab { cursor: pointer; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #64748b; }
-  .day-tab.active { background: #1a73e8; color: #fff; }
+  .student-row:hover { background: #f0faf7 !important; }
+  .day-tab { cursor: pointer; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #3d6b57; border: 1.5px solid #c8ddd6; background: #fff; }
+  .day-tab.active { background: #08543D; color: #fff; border-color: #08543D; }
   .period-badge {
     display: inline-block; padding: 2px 8px; border-radius: 6px;
-    font-size: 11px; font-weight: 700; background: #e0e7ff; color: #3730a3;
+    font-size: 11px; font-weight: 700; background: #e6f4ef; color: #08543D;
   }
 </style>
 {% endblock %}
@@ -69,30 +65,50 @@
       </div>
       <div class="card-body">
         {% if today_schedules %}
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          {% for sch in today_schedules %}
-          <a href="?schedule={{ sch.pk }}"
-             class="lesson-card text-decoration-none {% if selected_schedule.pk == sch.pk %}active{% elif next_schedule.pk == sch.pk %}next{% endif %}"
-             style="min-width:160px;">
-            <div class="d-flex align-items-center gap-2 mb-1">
-              {% if sch.period %}
-              <span class="period-badge">{{ sch.period.lesson_number }}-soat</span>
-              {% endif %}
-              {% if current_schedule.pk == sch.pk %}
-              <span class="badge bg-success" style="font-size:10px;">Hozir</span>
-              {% elif next_schedule.pk == sch.pk %}
-              <span class="badge bg-warning text-dark" style="font-size:10px;">Keyingi</span>
-              {% endif %}
-            </div>
-            <div class="fw-bold" style="font-size:13px;">{{ sch.subject.name }}</div>
-            <div class="text-muted" style="font-size:11px;">
-              {{ sch.effective_start|time:"H:i"|default:"—" }} – {{ sch.effective_end|time:"H:i"|default:"—" }}
-            </div>
-            <div class="text-muted" style="font-size:11px;">
-              {% if sch.teacher %}{{ sch.teacher.get_full_name|default:sch.teacher.username }}{% else %}—{% endif %}
-            </div>
-          </a>
-          {% endfor %}
+        <div class="schedule-table mb-3">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:#e6f4ef;">
+                <th style="padding:8px 12px;font-weight:700;color:#08543D;font-size:11px;text-transform:uppercase;letter-spacing:.04em;width:36px;">#</th>
+                <th style="padding:8px 12px;font-weight:700;color:#08543D;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">Fan</th>
+                <th style="padding:8px 12px;font-weight:700;color:#08543D;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">Vaqt</th>
+                <th style="padding:8px 12px;font-weight:700;color:#08543D;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">O'qituvchi</th>
+                <th style="padding:8px 12px;font-weight:700;color:#08543D;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">Holat</th>
+                <th style="padding:8px 12px;width:80px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sch in today_schedules %}
+              <tr style="border-bottom:1px solid #e6f4ef;{% if selected_schedule.pk == sch.pk %}background:#f0faf7;{% endif %}">
+                <td style="padding:10px 12px;color:#3d6b57;font-weight:700;">
+                  {% if sch.period %}{{ sch.period.lesson_number }}{% else %}{{ forloop.counter }}{% endif %}
+                </td>
+                <td style="padding:10px 12px;">
+                  <span style="font-weight:600;color:#0d2b20;">{{ sch.subject.name }}</span>
+                  {% if current_schedule.pk == sch.pk %}
+                  <span style="margin-left:6px;background:#dcfce7;color:#15803d;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;">Hozir</span>
+                  {% elif next_schedule.pk == sch.pk %}
+                  <span style="margin-left:6px;background:#fef9c3;color:#854d0e;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;">Keyingi</span>
+                  {% endif %}
+                </td>
+                <td style="padding:10px 12px;color:#3d6b57;white-space:nowrap;">
+                  {{ sch.effective_start|time:"H:i"|default:"—" }} – {{ sch.effective_end|time:"H:i"|default:"—" }}
+                </td>
+                <td style="padding:10px 12px;color:#636e72;">
+                  {% if sch.teacher %}{{ sch.teacher.get_full_name|default:sch.teacher.username }}{% else %}—{% endif %}
+                </td>
+                <td style="padding:10px 12px;">
+                  {% if selected_schedule.pk == sch.pk %}
+                  <span style="background:#08543D;color:#fff;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;">Tanlangan</span>
+                  {% endif %}
+                </td>
+                <td style="padding:10px 12px;text-align:right;">
+                  <a href="?schedule={{ sch.pk }}" style="background:#e6f4ef;color:#08543D;border:1.5px solid #c8ddd6;border-radius:7px;padding:4px 12px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;">Davomat</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         {% else %}
         <div class="text-muted text-center py-3" style="font-size:13px;">
@@ -122,27 +138,26 @@
             {% csrf_token %}
             <input type="hidden" name="schedule_id" value="{{ selected_schedule.pk }}">
 
-            <!-- Tez belgilash -->
-            <div class="d-flex gap-2 mb-3">
-              <button type="button" class="btn btn-sm btn-outline-success" onclick="setAll('present')">
+          <div class="d-flex gap-2 mb-3">
+              <button type="button" style="background:#e6f4ef;color:#08543D;border:1.5px solid #c8ddd6;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;" onclick="setAll('present')">
                 <i class="fa-solid fa-check me-1"></i>Barchasi keldi
               </button>
-              <button type="button" class="btn btn-sm btn-outline-danger" onclick="setAll('absent')">
+              <button type="button" style="background:#fee2e2;color:#b91c1c;border:1.5px solid #fca5a5;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;" onclick="setAll('absent')">
                 <i class="fa-solid fa-xmark me-1"></i>Barchasi kelmadi
               </button>
             </div>
 
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0" style="font-size:13px;">
-                <thead class="table-light">
-                  <tr>
-                    <th>#</th>
-                    <th>O'quvchi</th>
-                    <th class="text-center">Keldi</th>
-                    <th class="text-center">Kelmadi</th>
-                    <th class="text-center">Kech</th>
-                    <th class="text-center">Uzrli</th>
-                    <th>Izoh</th>
+                <thead>
+                  <tr style="background:#e6f4ef;">
+                    <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#08543D;text-transform:uppercase;letter-spacing:.04em;">#</th>
+                    <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#08543D;text-transform:uppercase;letter-spacing:.04em;">O'quvchi</th>
+                    <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#08543D;text-transform:uppercase;letter-spacing:.04em;text-align:center;">Keldi</th>
+                    <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#08543D;text-transform:uppercase;letter-spacing:.04em;text-align:center;">Kelmadi</th>
+                    <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#08543D;text-transform:uppercase;letter-spacing:.04em;text-align:center;">Kech</th>
+                    <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#08543D;text-transform:uppercase;letter-spacing:.04em;text-align:center;">Uzrli</th>
+                    <th style="padding:10px 12px;font-size:11px;font-weight:700;color:#08543D;text-transform:uppercase;letter-spacing:.04em;">Izoh</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -193,7 +208,7 @@
               </table>
             </div>
             <div class="mt-3">
-              <button type="submit" class="btn btn-success">
+              <button type="submit" style="background:#08543D;color:#fff;border:none;border-radius:9px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;">
                 <i class="fa-solid fa-save me-1"></i>Davomatni saqlash
               </button>
             </div>

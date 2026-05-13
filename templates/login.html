@@ -539,6 +539,7 @@
                 rt_seller: "Sotuvchi", rd_seller: "Sotuv & mahsulot",
                 rt_production: "Ishlab chiqarish", rd_production: "Retsept & mahsulot",
                 rt_branch: "Filial Admini", rd_branch: "O'z filiali",
+                rt_callcenter: "Call Center", rd_callcenter: "Lead & Operator",
             },
             "uz-cyrl": {
                 lbl_role: "Ролни танланг",
@@ -555,7 +556,7 @@
                 rt_accountant: "Бухгалтер", rd_accountant: "Молия & касса",
                 rt_hr: "HR Ходим", rd_hr: "Ходимлар & иш ҳақи",
                 rt_seller: "Сотувчи", rd_seller: "Сотув & маҳсулот",
-rt_production: "Ишлаб чиқариш", rd_production: "Рецепт & маҳсулот",
+                rt_production: "Ишлаб чиқариш", rd_production: "Рецепт & маҳсулот",
                 rt_branch: "Филиал Админи", rd_branch: "Ўз филиали",
                 rt_callcenter: "Call Center", rd_callcenter: "Lead & Operator",
             },
@@ -600,7 +601,7 @@ rt_production: "Ишлаб чиқариш", rd_production: "Рецепт & ма�
             });
 
             // Role card titles & descs
-            ['superadmin', 'accountant', 'hr', 'seller', 'production', 'branch'].forEach(r => {
+            ['superadmin', 'accountant', 'hr', 'seller', 'production', 'branch', 'callcenter'].forEach(r => {
                 const t = document.getElementById('rt_' + r);
                 const d = document.getElementById('rd_' + r);
                 if (t) t.textContent = s['rt_' + r];

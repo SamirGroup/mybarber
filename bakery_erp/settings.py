@@ -28,11 +28,11 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydа False
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'mybakeryerp-production.up.railway.app',
+    'web-production-058b4.up.railway.app',
     '.railway.app',  # Barcha railway.app domenlariga ruxsat
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'https://mybakeryerp-production.up.railway.app',
+    'https://web-production-058b4.up.railway.app/',
     'https://*.railway.app',
 ]
 

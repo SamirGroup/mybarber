@@ -40,6 +40,25 @@ def _ensure_students_groups():
         Group.objects.get_or_create(name=name)
 
 
+# ── School Portal Dashboard ──────────────────────────────────────────
+@login_required
+@students_required
+def school_dashboard(request):
+    from django.db.models import Count
+    today = timezone.now().date()
+    classrooms = Classroom.objects.select_related('grade', 'academic_year').all()
+    today_present = Attendance.objects.filter(date=today, status='present').values('student').distinct().count()
+    today_absent  = Attendance.objects.filter(date=today, status='absent').values('student').distinct().count()
+    context = {
+        'classrooms': classrooms,
+        'classrooms_count': classrooms.count(),
+        'students_count': Student.objects.filter(is_active=True).count(),
+        'today_present': today_present,
+        'today_absent': today_absent,
+    }
+    return render(request, 'school/dashboard.html', context)
+
+
 # ── Dashboard ─────────────────────────────────────────────────────────
 @login_required
 @students_required

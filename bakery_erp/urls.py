@@ -19,11 +19,13 @@ from django.urls import path, include
 from django.conf.urls.i18n import set_language
 from django.conf import settings
 from django.conf.urls.static import static
+from students.views import school_dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('rosetta/', include('rosetta.urls')),
     path('i18n/setlang/', set_language, name='set_language'),
+    path('school/', school_dashboard, name='school_dashboard'),
     path('', include('core.urls')),
     path('production/', include('production.urls')),
     path('sales/', include('sales.urls')),
