@@ -942,6 +942,11 @@
 
     {% if not is_superadmin %}
     <nav class="acc-nav-grid" aria-label="Buxgalteriya bo'limlari">
+        <a href="#pane-overview" class="acc-nav-card" data-acc-tab="overview">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Umumiy</span>
+            <small>Moliyaviy ko'rsatkichlar</small>
+        </a>
         <a href="#cash" class="acc-nav-card" data-acc-tab="cash">
             <i class="fa-solid fa-money-bill-wave"></i>
             <span>Kassa</span>
@@ -961,6 +966,11 @@
             <i class="fa-solid fa-pen-to-square"></i>
             <span>Qo'lda jurnal</span>
             <small>Qo'lda yozuv kiritish</small>
+        </a>
+        <a href="#pane-students" class="acc-nav-card" data-acc-tab="students">
+            <i class="fa-solid fa-users-graduate"></i>
+            <span>O'quvchilar</span>
+            <small>Shartnomalar va to'lovlar</small>
         </a>
         <a href="#integration" class="acc-nav-card" data-acc-tab="integration">
             <i class="fa-solid fa-plug"></i>
@@ -1329,6 +1339,76 @@
                 <button type="submit" class="btn-submit" style="max-width:320px;margin-top:20px;">Jurnalni yaratish</button>
             </form>
         </article>
+    </section>
+
+    <!-- ——— O'QUVCHILAR ——— -->
+    <section id="pane-students" class="tab-pane">
+        <div class="panel" style="grid-column: span 12;">
+            <div class="section-title">
+                <i class="fa-solid fa-users-graduate"></i> O'quvchilar bo'yicha to'lovlar
+            </div>
+            <p class="text-muted mb-4">
+                Barcha o'quvchilar bo'yicha to'lovlar, shartnomalar va qarzdorlik holatini ko'ring.
+            </p>
+            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <a href="{% url 'students_payments_report' %}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-eye me-2"></i>To'liq hisobotni ko'rish
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-premium">
+                    <thead>
+                        <tr>
+                            <th>O'quvchi</th>
+                            <th>Shartnoma</th>
+                            <th>Jami to'lov</th>
+                            <th>Kerakli summa</th>
+                            <th>Qarzdorlik</th>
+                            <th>Oxirgi to'lov</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in students_summary|slice:":10" %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.student.full_name }}</strong>
+                                {% if item.debt > 0 %}
+                                <span class="badge bg-danger ms-1">Qarz</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.contract_count }}</td>
+                            <td class="text-success">{{ item.total_paid|floatformat:0 }}</td>
+                            <td>{{ item.total_fee|floatformat:0 }}</td>
+                            <td class="{% if item.debt > 0 %}text-danger fw-bold{% endif %}">
+                                {% if item.debt > 0 %}{{ item.debt|floatformat:0 }}{% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% with last_payment=item.student.payments.first %}
+                                {% if last_payment %}{{ last_payment.payment_date|date:"d.m.Y" }}{% else %}—{% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Ma'lumot topilmadi
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'students_payments_report' %}" class="btn btn-outline-primary">
+                    Barcha o'quvchilar (<strong>{{ students_summary|length }}</strong>) →
+                </a>
+            </div>
+        </div>
     </section>
 
     <!-- ——— INTEGRATION ——— -->

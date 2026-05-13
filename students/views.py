@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.conf import settings
+from decimal import Decimal
 import json
 import io
 import os
@@ -1676,6 +1677,7 @@ def click_webhook(request):
 def uzum_webhook(request):
     """Uzum Bank webhook handler"""
     import json as _json
+    import decimal
     try:
         data = _json.loads(request.body)
         service_id = data.get('serviceId', '')
@@ -1712,6 +1714,277 @@ def uzum_webhook(request):
         return JsonResponse({'status': -1, 'desc': str(e)})
 
 
+# ── Apelsin Webhook ───────────────────────────────────────────────────
+@csrf_exempt
+def apls_webhook(request):
+    """Apelsin.uz to'lov tizimi webhook"""
+    import json
+    import decimal
+    try:
+        data = json.loads(request.body)
+        
+        transaction_id = str(data.get('transaction_id', ''))
+        status = data.get('status', '')
+        amount = decimal.Decimal(str(data.get('amount', 0)))
+        order_id = str(data.get('order_id', ''))
+        
+        contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'success': False, 'error': 'Order not found'})
+        
+        op, _ = OnlinePayment.objects.get_or_create(
+            transaction_id=transaction_id,
+            defaults={
+                'provider': 'apelsin',
+                'order_id': order_id,
+                'student': contract.student,
+                'contract': contract,
+                'amount': amount,
+                'status': 'pending',
+                'raw_request': data,
+            }
+        )
+
+        if status == 'paid' and op.status != 'paid':
+            op.status = 'paid'
+            op.confirmed_at = timezone.now()
+            op.save()
+            _confirm_online_payment(op)
+        elif status in ['cancelled', 'failed']:
+            op.status = 'cancelled'
+            op.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ── CAP (Click Aylama Pul) Webhook ───────────────────────────────────
+@csrf_exempt
+def cap_webhook(request):
+    """CAP (Click Aylama Pul) webhook"""
+    import json
+    try:
+        data = json.loads(request.body)
+        
+        transaction_id = str(data.get('transaction_id', ''))
+        status = data.get('status', '')
+        amount = decimal.Decimal(data.get('amount', 0))
+        order_id = str(data.get('order_id', ''))
+        
+        contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'success': False, 'error': 'Order not found'})
+        
+        op, _ = OnlinePayment.objects.get_or_create(
+            transaction_id=transaction_id,
+            defaults={
+                'provider': 'cap',
+                'order_id': order_id,
+                'student': contract.student,
+                'contract': contract,
+                'amount': amount,
+                'status': 'pending',
+                'raw_request': data,
+            }
+        )
+        
+        if status == 'paid' and op.status != 'paid':
+            op.status = 'paid'
+            op.confirmed_at = timezone.now()
+            op.save()
+            _confirm_online_payment(op)
+        elif status in ['cancelled', 'failed']:
+            op.status = 'cancelled'
+            op.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ── Humo/UzCard Webhook ───────────────────────────────────────────────
+@csrf_exempt
+def humo_webhook(request):
+    """Humo/UzCard to'lov tizimi webhook"""
+    import json
+    try:
+        data = json.loads(request.body)
+        
+        transaction_id = str(data.get('transaction_id', ''))
+        status = data.get('status', '')
+        amount = decimal.Decimal(data.get('amount', 0))
+        order_id = str(data.get('order_id', ''))
+        
+        contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'success': False, 'error': 'Order not found'})
+        
+        op, _ = OnlinePayment.objects.get_or_create(
+            transaction_id=transaction_id,
+            defaults={
+                'provider': 'humo',
+                'order_id': order_id,
+                'student': contract.student,
+                'contract': contract,
+                'amount': amount,
+                'status': 'pending',
+                'raw_request': data,
+            }
+        )
+        
+        if status == 'success' and op.status != 'paid':
+            op.status = 'paid'
+            op.confirmed_at = timezone.now()
+            op.save()
+            _confirm_online_payment(op)
+        elif status in ['cancelled', 'failed']:
+            op.status = 'cancelled'
+            op.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ── Alif Mobi Webhook ─────────────────────────────────────────────────
+@csrf_exempt
+def alif_webhook(request):
+    """Alif Mobi to'lov tizimi webhook"""
+    import json
+    try:
+        data = json.loads(request.body)
+        
+        transaction_id = str(data.get('transaction_id', ''))
+        status = data.get('status', '')
+        amount = decimal.Decimal(data.get('amount', 0))
+        order_id = str(data.get('order_id', ''))
+        
+        contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'success': False, 'error': 'Order not found'})
+        
+        op, _ = OnlinePayment.objects.get_or_create(
+            transaction_id=transaction_id,
+            defaults={
+                'provider': 'alif',
+                'order_id': order_id,
+                'student': contract.student,
+                'contract': contract,
+                'amount': amount,
+                'status': 'pending',
+                'raw_request': data,
+            }
+        )
+        
+        if status == 'success' and op.status != 'paid':
+            op.status = 'paid'
+            op.confirmed_at = timezone.now()
+            op.save()
+            _confirm_online_payment(op)
+        elif status in ['cancelled', 'failed']:
+            op.status = 'cancelled'
+            op.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ── Anorbank Webhook ──────────────────────────────────────────────────
+@csrf_exempt
+def anorbank_webhook(request):
+    """Anorbank to'lov tizimi webhook"""
+    import json
+    try:
+        data = json.loads(request.body)
+        
+        transaction_id = str(data.get('transaction_id', ''))
+        status = data.get('status', '')
+        amount = decimal.Decimal(data.get('amount', 0))
+        order_id = str(data.get('order_id', ''))
+        
+        contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'success': False, 'error': 'Order not found'})
+        
+        op, _ = OnlinePayment.objects.get_or_create(
+            transaction_id=transaction_id,
+            defaults={
+                'provider': 'anorbank',
+                'order_id': order_id,
+                'student': contract.student,
+                'contract': contract,
+                'amount': amount,
+                'status': 'pending',
+                'raw_request': data,
+            }
+        )
+        
+        if status == 'completed' and op.status != 'paid':
+            op.status = 'paid'
+            op.confirmed_at = timezone.now()
+            op.save()
+            _confirm_online_payment(op)
+        elif status in ['cancelled', 'failed']:
+            op.status = 'cancelled'
+            op.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ── Multicard Webhook ─────────────────────────────────────────────────
+@csrf_exempt
+def multicard_webhook(request):
+    """Multicard to'lov tizimi webhook"""
+    import json
+    try:
+        data = json.loads(request.body)
+        
+        transaction_id = str(data.get('transaction_id', ''))
+        status = data.get('status', '')
+        amount = decimal.Decimal(data.get('amount', 0))
+        order_id = str(data.get('order_id', ''))
+        
+        contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'success': False, 'error': 'Order not found'})
+        
+        op, _ = OnlinePayment.objects.get_or_create(
+            transaction_id=transaction_id,
+            defaults={
+                'provider': 'multicard',
+                'order_id': order_id,
+                'student': contract.student,
+                'contract': contract,
+                'amount': amount,
+                'status': 'pending',
+                'raw_request': data,
+            }
+        )
+        
+        if status == 'success' and op.status != 'paid':
+            op.status = 'paid'
+            op.confirmed_at = timezone.now()
+            op.save()
+            _confirm_online_payment(op)
+        elif status in ['cancelled', 'failed']:
+            op.status = 'cancelled'
+            op.save()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
 def _confirm_online_payment(op: OnlinePayment):
     """
     Online to'lov tasdiqlanganda:
@@ -1739,14 +2012,18 @@ def _confirm_online_payment(op: OnlinePayment):
     op.payment = payment
     op.save(update_fields=['payment'])
 
-    # Buxgalteriyaga yozish
+    # Buxgalteriyaga yozish - Transaction + GL Journal Entry
     try:
+        from accounting.models import Account, JournalEntry, JournalLine
+        from accounting.services import ensure_register_gl
+        
         cash_register = CashRegister.objects.filter(
             name__icontains=op.provider
         ).first() or CashRegister.objects.first()
 
         if cash_register:
-            Transaction.objects.create(
+            # 1. Transaction yaratish (kassa operatsiyasi)
+            transaction = Transaction.objects.create(
                 cash_register=cash_register,
                 amount=op.amount,
                 transaction_type='income',
@@ -1757,10 +2034,54 @@ def _confirm_online_payment(op: OnlinePayment):
                     f"TxID: {op.transaction_id}"
                 ),
             )
+            
+            # Kassa balansini yangilash
             cash_register.balance += op.amount
             cash_register.save(update_fields=['balance'])
-    except Exception:
-        pass  # Buxgalteriya xatosi to'lovni bloklamasin
+            
+            # 2. GL Journal Entry yaratish
+            cash_account = ensure_register_gl(cash_register)
+            
+            # Daromad accountini topish (4100 - Savdo daromadi)
+            try:
+                revenue_account = Account.objects.get(code='4100')
+            except Account.DoesNotExist:
+                revenue_account = Account.objects.create(
+                    code='4100',
+                    name='Shartnoma to\'lovlari (daromad)',
+                    account_type='revenue'
+                )
+            
+            journal_entry = JournalEntry.objects.create(
+                entry_date=timezone.now(),
+                reference=f"ONLINE-{op.transaction_id}",
+                memo=f"Online to'lov - {op.get_provider_display()} - {op.student.full_name}",
+                source='online_payment',
+                reference_type='online_payment',
+                reference_id=op.id,
+            )
+            
+            # GL Lines: Debit Kassa / Credit Daromad
+            JournalLine.objects.create(
+                entry=journal_entry,
+                account=cash_account,
+                debit=op.amount,
+                credit=Decimal('0'),
+                description=f"To'lov keldi: {op.get_provider_display()}"
+            )
+            
+            JournalLine.objects.create(
+                entry=journal_entry,
+                account=revenue_account,
+                debit=Decimal('0'),
+                credit=op.amount,
+                description=f"Daromad: {op.student.full_name}"
+            )
+    except Exception as e:
+        # GL yozuvi xatosi to'lovni bloklamasligi kerak
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Online payment GL error: {str(e)}", exc_info=True)
 
 
 # ── Payment Init (redirect to gateway) ───────────────────────────────

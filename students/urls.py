@@ -51,8 +51,6 @@ urlpatterns = [
 
     # Payment Gateway Webhooks
     path('webhook/payme/', views.payme_webhook, name='students_payme_webhook'),
-    path('webhook/click/', views.click_webhook, name='students_click_webhook'),
-    path('webhook/uzum/', views.uzum_webhook, name='students_uzum_webhook'),
 
     # SMS
     path('sms/config/', views.sms_config, name='students_sms_config'),

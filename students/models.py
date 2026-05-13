@@ -505,6 +505,9 @@ class Payment(models.Model):
         ('apelsin', 'Apelsin'),
         ('humo', 'Humo'),
         ('uzcard', 'UzCard'),
+        ('multicard', 'Multicard'),
+        ('anorbank', 'Anorbank'),
+        ('alif', 'Alif Mobi'),
         ('online', 'Online to\'lov'),
     ]
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='payments')
@@ -648,6 +651,11 @@ class OnlinePayment(models.Model):
         ('apelsin', 'Apelsin'),
         ('humo', 'Humo'),
         ('uzcard', 'UzCard'),
+        ('multicard', 'Multicard'),
+        ('anorbank', 'Anorbank'),
+        ('alif', 'Alif Mobi'),
+        ('cap', 'CAP'),
+        ('payme_business', 'Payme Business'),
     ]
     STATUS_CHOICES = [
         ('pending', 'Kutilmoqda'),

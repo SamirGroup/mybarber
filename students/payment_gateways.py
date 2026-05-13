@@ -1,6 +1,10 @@
 # Online to'lov tizimlari integratsiyasi
+# Qo'llab-quvvatlanadi: Payme, Click, Uzum Bank, Apelsin, Humo, Uzcard
 import hashlib
 import hmac
+import requests
+import json
+from decimal import Decimal
 import json
 from django.conf import settings
 from django.http import JsonResponse
@@ -8,6 +12,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .models import OnlinePayment, Payment, Student, Contract
 from django.utils import timezone
+from accounting.models import PaymentGateway
+from accounting.services import record_income
+from accounting.models import CashRegister, Account, JournalEntry, JournalLine
+from decimal import Decimal
 
 
 # ── Payme ──────────────────────────────────────────────────────────────

@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from .models import Account, CashRegister, ExpenseCategory, JournalEntry, JournalLine, Supplier, Transaction
+from .models import (
+    Account, CashRegister, ExpenseCategory, JournalEntry, JournalLine, 
+    Supplier, Transaction
+)
 
 
 class JournalLineInline(admin.TabularInline):
