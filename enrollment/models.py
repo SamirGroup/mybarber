@@ -198,6 +198,67 @@ class CallRecord(models.Model):
         seconds = self.duration_seconds % 60
         return f"{minutes}:{seconds:02d}"
 
+    def normalize_phone_uzbekistan(self, phone):
+        """O'zbekiston telefon raqamlarini normalizatsiya qilish (Ucell, Beeline, Umnitel)"""
+        import re
+
+        # Faqat raqamlarni qoldirish
+        phone = re.sub(r'\D', '', phone)
+        
+        # Agar 9 ta raqam bo'lsa, +998 qo'shish
+        if len(phone) == 9:
+            phone = '998' + phone
+        
+        # Agar 12 ta raqam bo'lsa (998 bilan), + qo'shish
+        if len(phone) == 12 and phone.startswith('998'):
+            phone = '+' + phone
+        
+        # Agar +998 bilan boshlansa, to'g'ri
+        if phone.startswith('+998') and len(phone) == 13:
+            return phone
+        
+        # Agar + bilan boshlansa, tekshirish
+        if phone.startswith('+') and len(phone) == 13:
+            return phone
+        
+        return '+' + phone
+    
+    def is_uzbekistan_number(self, phone):
+        """O'zbekiston raqami ekanligini tekshirish"""
+        import re
+        phone_clean = re.sub(r'\D', '', phone)
+        return phone_clean.startswith('998') or phone_clean.startswith('90') or \
+               phone_clean.startswith('91') or phone_clean.startswith('93') or \
+               phone_clean.startswith('94') or phone_clean.startswith('95') or \
+               phone_clean.startswith('97') or phone_clean.startswith('98') or \
+               phone_clean.startswith('99')
+    
+    def get_operator(self, phone):
+        """Telefon operatorini aniqlash (O'zbekiston)"""
+        import re
+        phone_clean = re.sub(r'\D', '', phone)
+        
+        # O'zbekiston kodlari
+        if len(phone_clean) >= 13:
+            prefix = phone_clean[-9:-7]  # Oxirgi 9 raqamdan bosh 2 tasini
+        elif len(phone_clean) >= 9:
+            prefix = phone_clean[:2]
+        else:
+            return 'Noma\'lum'
+        
+        operators = {
+            '90': 'Ucell',
+            '91': 'Beeline',
+            '93': 'Ucell',
+            '94': 'Beeline',
+            '95': 'Umnitel (UMC)',
+            '97': 'Beeline',
+            '98': 'Ucell',
+            '99': 'Beeline',
+        }
+        
+        return operators.get(prefix, 'Noma\'lum operator')
+
 
 class StudentApplication(models.Model):
     """O'quvchi qabul qilish uchun to'liq ariza."""

@@ -1,0 +1,2 @@
+VERSION = "2.2.6"
+DEFAULT_USER_AGENT = "GoPay Python " + VERSION

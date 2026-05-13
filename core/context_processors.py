@@ -25,5 +25,6 @@ def user_roles(request):
         'is_production_mgr':  is_superadmin or 'production_manager' in groups,
         'is_enrollment':      is_superadmin or 'enrollment_agent'   in groups or 'enrollment_manager' in groups,
         'is_students':        is_superadmin or 'students_agent'     in groups or 'students_manager' in groups or 'enrollment_agent' in groups or 'enrollment_manager' in groups,
+        'is_cc_admin':        is_superadmin or 'callcenter_admin'   in groups or 'callcenter_supervisor' in groups,
         'user_branch':        user_branch,
     }

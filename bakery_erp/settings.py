@@ -21,10 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#8dh8-hxh*8j93l2k@dfu8n1rr@s2-tyezw9-iw33g1@y)bgoa'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-demo-only-change-in-production-#8dh8hxh')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydа False qiling
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -47,11 +46,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third party
-    'channels',
-    'rest_framework',
-    'corsheaders',
-    
+    'whitenoise.runserver_nostatic',
+    'whitenoise',
+
     # Custom apps
     'core',
     'production',
@@ -61,15 +58,13 @@ INSTALLED_APPS = [
     'hr',
     'enrollment',
     'students',
-    'rosetta',
-    'whitenoise.runserver_nostatic',
-    'whitenoise',
+    'callcenter',
+    # 'rosetta',  # requires django-rosetta
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -750,36 +745,35 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Channels configuration
-ASGI_APPLICATION = 'bakery_erp.asgi.application'
+# Channels configuration (commented — requires channels + redis)
+# ASGI_APPLICATION = 'bakery_erp.asgi.application'
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
+#         },
+#     },
+# }
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
-        },
-    },
-}
+# Django REST Framework (commented — requires djangorestframework)
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.SessionAuthentication',
+#     ],
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 25,
+# }
 
-# Django REST Framework
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 25,
-}
-
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
-CORS_ALLOW_CREDENTIALS = True
+# CORS settings (commented — requires django-cors-headers)
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:8000',
+#     'http://127.0.0.1:8000',
+# ]
+# CORS_ALLOW_CREDENTIALS = True
 
 # Celery configuration
 CELERY_BROKER_URL = f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', 6379)}/0"

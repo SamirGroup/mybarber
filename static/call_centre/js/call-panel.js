@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAgentStats();
     setupStatusChangeListener();
     
+    // Initialize phone input with default prefix
+    const phoneInput = document.getElementById('phone-input');
+    if (phoneInput && !phoneInput.value) {
+        phoneInput.value = '+998';
+    }
+    
     // Load stats every 30 seconds
     setInterval(loadAgentStats, 30000);
 });
@@ -22,26 +28,44 @@ document.addEventListener('DOMContentLoaded', function() {
 // Dial Pad Functions
 function dialNumber(digit) {
     const input = document.getElementById('phone-input');
+    if (!input) return;
+    
     let currentValue = input.value;
     
-    // Initialize with +998 if empty
-    if (!currentValue) {
+    // If empty or just has +998, replace with new digit
+    if (!currentValue || currentValue === '+998') {
         currentValue = '+998';
+    }
+    
+    // Prevent adding more than 13 digits (+998XXXXXXXXX)
+    const digitsOnly = currentValue.replace(/\D/g, '');
+    if (digitsOnly.length >= 12) {
+        return; // Max 12 digits after +998
     }
     
     input.value = currentValue + digit;
 }
 
 function clearNumber() {
-    document.getElementById('phone-input').value = '+998';
+    const input = document.getElementById('phone-input');
+    if (input) {
+        input.value = '+998';
+    }
 }
 
 function makeCall() {
     const phoneNumber = document.getElementById('phone-input').value;
     
-    if (!phoneNumber || phoneNumber === '+998') {
-        alert('Iltimos, telefon raqamini kiriting');
+    if (!phoneNumber || phoneNumber === '+998' || phoneNumber.length < 13) {
+        alert('Iltimos, telefon raqamini to\'liq kiriting (+998XXXXXXXXX)');
         return;
+    }
+    
+    // Show loading state
+    const callBtn = document.querySelector('button[onclick="makeCall()"]');
+    if (callBtn) {
+        callBtn.disabled = true;
+        callBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ulanmoqda...';
     }
     
     // Send AJAX request to initiate call
@@ -53,19 +77,46 @@ function makeCall() {
         },
         body: `to_number=${encodeURIComponent(phoneNumber)}`
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
     .then(data => {
         if (data.status === 'ok') {
             startCall(data.call_id, phoneNumber);
             clearNumber();
+            showNotification('success', `Qo'ng'iroq ${phoneNumber} ga yo'naltirildi` + (data.demo_mode ? ' (Demo rejim)' : ''));
         } else {
             alert('Xatolik: ' + (data.error || 'Qo\'ng\'iroq amalga oshmadi'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Qo\'ng\'iroq amalga oshmadi');
+        alert('Qo\'ng\'iroq amalga oshmadi. Serverga ulanib bo\'lmadi.');
+    })
+    .finally(() => {
+        // Reset button state
+        if (callBtn) {
+            callBtn.disabled = false;
+            callBtn.innerHTML = '<i class="fas fa-phone mr-2"></i> Qo\'ng\'iroq';
+        }
     });
+}
+
+function showNotification(type, message) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+    } text-white`;
+    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>${message}`;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
 }
 
 // Incoming Call Functions
@@ -133,13 +184,18 @@ function startCall(callId, phoneNumber, leadName = null) {
     };
     
     // Show active call card
-    document.getElementById('active-call-card').classList.remove('hidden');
-    document.getElementById('active-caller-number').textContent = phoneNumber;
+    const activeCallCard = document.getElementById('active-call-card');
+    if (activeCallCard) {
+        activeCallCard.classList.remove('hidden');
+    }
+    
+    const callerNumber = document.getElementById('active-caller-number');
+    if (callerNumber) {
+        callerNumber.textContent = phoneNumber;
+    }
     
     // Load customer info
-    if (leadName) {
-        loadCustomerInfo(phoneNumber);
-    }
+    loadCustomerInfo(phoneNumber);
     
     // Start timer
     callStartTime = Date.now();

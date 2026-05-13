@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sharjah School — CRM</title>
+    <title>My School — CRM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
         <aside class="sidebar" id="appSidebar">
             <div class="sidebar-header">
                 <i class="fa-solid fa-school logo-icon"> </i>
-                <h2>Sharjah<span class="highlight">School</span></h2>
+                <h2>My<span class="highlight">School</span></h2>
                 <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -29,7 +29,7 @@
 
             <ul class="nav-links">
 
-                <!-- Dashboard: superadmin only -->
+<!-- Dashboard: superadmin only -->
                 {% if is_superadmin %}
                 <li>
                     <a href="/" class="{% if request.path == '/' %}active{% endif %}">
@@ -65,6 +65,25 @@
                     <a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
                         <i class="fa-solid fa-chart-bar"></i>
                         <span>Hisobotlar</span>
+                    </a>
+                </li>
+                <!-- O'quvchilar bo'limi - superadmin uchun -->
+                <li>
+                    <a href="/students/" class="{% if '/students/' in request.path and request.path != '/students/' %}active{% endif %}">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        <span>O'quvchilar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/list/" class="{% if '/students/list' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-list"></i>
+                        <span>O'quvchilar ro'yxati</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chalkboard"></i>
+                        <span>Sinflar</span>
                     </a>
                 </li>
                 <li>
@@ -144,6 +163,27 @@
                 {% endif %}
                 {% endif %}
 
+                {% if is_students and not is_superadmin %}
+                <li>
+                    <a href="/students/" class="{% if '/students/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        <span>O'quvchilar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/list/" class="{% if '/students/list' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-list"></i>
+                        <span>O'quvchilar ro'yxati</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chalkboard"></i>
+                        <span>Sinflar</span>
+                    </a>
+                </li>
+                {% endif %}
+
                 {% if is_enrollment and not is_superadmin %}
                 <li>
                     <a href="/enrollment/" class="{% if '/enrollment/' in request.path and not '/enrollment/leads' in request.path and not '/enrollment/applications' in request.path and not '/enrollment/call-centre' in request.path and not '/enrollment/reports' in request.path %}active{% endif %}">
@@ -202,7 +242,7 @@
                 </li>
                 {% endif %}
 
-                {% if is_superadmin %}
+{% if is_superadmin %}
                 <li>
                     <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
                         <i class="fa-solid fa-industry"></i>
@@ -240,12 +280,6 @@
                     <a href="/hr/" class="{% if '/hr/' in request.path %}active{% endif %}">
                         <i class="fa-solid fa-users"></i>
                         <span data-i18n="nav_hr">HR Bo'limi</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/hr/?tab=positions" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-briefcase"></i>
-                        <span>Lavozimlar</span>
                     </a>
                 </li>
                 <li>

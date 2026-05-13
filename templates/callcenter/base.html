@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Call Center CRM{% endblock %}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+<style>
+  :root {
+    --cc-primary: #1a73e8;
+    --cc-sidebar: #0f1923;
+    --cc-sidebar-hover: #1e2d3d;
+    --cc-accent: #00c6ff;
+  }
+  body { background: #f0f4f8; font-family: 'Inter', sans-serif; }
+  .cc-sidebar {
+    width: 240px; min-height: 100vh; background: var(--cc-sidebar);
+    position: fixed; top: 0; left: 0; z-index: 1000;
+    display: flex; flex-direction: column;
+  }
+  .cc-sidebar .brand {
+    padding: 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    color: #fff; font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
+  }
+  .cc-sidebar .brand span { color: var(--cc-accent); }
+  .cc-nav { list-style: none; padding: 12px 0; margin: 0; flex: 1; }
+  .cc-nav li a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px; color: rgba(255,255,255,0.7);
+    text-decoration: none; font-size: 13.5px; font-weight: 500;
+    border-left: 3px solid transparent; transition: all 0.15s;
+  }
+  .cc-nav li a:hover, .cc-nav li a.active {
+    background: var(--cc-sidebar-hover); color: #fff;
+    border-left-color: var(--cc-accent);
+  }
+  .cc-nav li a i { width: 18px; text-align: center; font-size: 14px; }
+  .cc-main { margin-left: 240px; min-height: 100vh; }
+  .cc-topbar {
+    background: #fff; border-bottom: 1px solid #e2e8f0;
+    padding: 0 24px; height: 56px; display: flex;
+    align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .cc-topbar .page-title { font-size: 15px; font-weight: 700; color: #1e293b; }
+  .cc-content { padding: 24px; }
+  .kpi-card {
+    background: #fff; border-radius: 14px; padding: 20px 22px;
+    border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .kpi-card .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: #64748b; font-weight: 700; }
+  .kpi-card .kpi-value { font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1.1; margin: 6px 0 4px; }
+  .kpi-card .kpi-icon { font-size: 22px; opacity: 0.15; }
+  .badge-new { background: #dbeafe; color: #1d4ed8; }
+  .badge-not_called { background: #fee2e2; color: #b91c1c; }
+  .badge-called { background: #dcfce7; color: #15803d; }
+  .badge-callback { background: #fef9c3; color: #854d0e; }
+  .badge-received { background: #d1fae5; color: #065f46; }
+  .badge-no_answer { background: #f1f5f9; color: #475569; }
+  .badge-wrong_number { background: #fce7f3; color: #9d174d; }
+  .badge-cancelled { background: #f1f5f9; color: #6b7280; }
+  .notif-bell { position: relative; }
+  .notif-badge {
+    position: absolute; top: -6px; right: -8px;
+    background: #ef4444; color: #fff; border-radius: 999px;
+    font-size: 10px; font-weight: 700; padding: 1px 5px; min-width: 18px; text-align: center;
+  }
+  .panel { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; padding: 20px; }
+  @media (max-width: 768px) {
+    .cc-sidebar { transform: translateX(-100%); }
+    .cc-main { margin-left: 0; }
+  }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<aside class="cc-sidebar">
+  <div class="brand"><i class="fa-solid fa-headset"></i> Call<span>Center</span></div>
+  <ul class="cc-nav">
+    <li><a href="{% url 'cc_dashboard' %}" class="{% if request.resolver_match.url_name == 'cc_dashboard' %}active{% endif %}">
+      <i class="fa-solid fa-chart-pie"></i> Dashboard
+    </a></li>
+    <li><a href="{% url 'cc_lead_list' %}" class="{% if 'cc_lead' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="fa-solid fa-users"></i> Leadlar
+    </a></li>
+    <li><a href="{% url 'cc_notifications' %}" class="{% if request.resolver_match.url_name == 'cc_notifications' %}active{% endif %}">
+      <i class="fa-solid fa-bell"></i> Bildirishnomalar
+    </a></li>
+    <li><a href="{% url 'cc_reports' %}" class="{% if request.resolver_match.url_name == 'cc_reports' %}active{% endif %}">
+      <i class="fa-solid fa-chart-bar"></i> Hisobotlar
+    </a></li>
+    {% if is_cc_admin %}
+    <li><a href="{% url 'cc_users' %}" class="{% if request.resolver_match.url_name == 'cc_users' %}active{% endif %}">
+      <i class="fa-solid fa-user-gear"></i> Foydalanuvchilar
+    </a></li>
+    <li><a href="{% url 'cc_settings' %}" class="{% if request.resolver_match.url_name == 'cc_settings' %}active{% endif %}">
+      <i class="fa-solid fa-gear"></i> Sozlamalar
+    </a></li>
+    {% endif %}
+    <li style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;">
+      <a href="/"><i class="fa-solid fa-arrow-left"></i> Asosiy tizim</a>
+    </li>
+    <li><a href="/logout/"><i class="fa-solid fa-right-from-bracket"></i> Chiqish</a></li>
+  </ul>
+</aside>
+
+<div class="cc-main">
+  <header class="cc-topbar">
+    <span class="page-title">{% block page_title %}{% endblock %}</span>
+    <div class="d-flex align-items-center gap-3">
+      <a href="{% url 'cc_notifications' %}" class="notif-bell text-secondary" id="notifBell">
+        <i class="fa-solid fa-bell fs-5"></i>
+        <span class="notif-badge d-none" id="notifCount">0</span>
+      </a>
+      <span class="text-muted" style="font-size:13px;">{{ request.user.get_full_name|default:request.user.username }}</span>
+    </div>
+  </header>
+
+  <div class="cc-content">
+    {% if messages %}
+      {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+        {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Notification count polling
+  function pollNotifications() {
+    fetch("{% url 'cc_notifications_count' %}")
+      .then(r => r.json())
+      .then(d => {
+        const badge = document.getElementById('notifCount');
+        if (d.count > 0) {
+          badge.textContent = d.count;
+          badge.classList.remove('d-none');
+        } else {
+          badge.classList.add('d-none');
+        }
+      });
+  }
+  pollNotifications();
+  setInterval(pollNotifications, 30000);
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

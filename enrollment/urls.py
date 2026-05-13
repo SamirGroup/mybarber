@@ -30,6 +30,9 @@ urlpatterns = [
     path('twilio/status-callback/', views.twilio_status_callback, name='enrollment_twilio_status'),
     path('twilio/token/', views.twilio_token, name='enrollment_twilio_token'),
 
+    # O'zbekiston telefon kompaniyalari uchun SIP webhook (ixtiyoriy)
+    path('sip/webhook/', views.sip_webhook, name='enrollment_sip_webhook'),
+
     # Applications
     path('applications/', views.application_list, name='enrollment_application_list'),
     path('applications/new/', views.application_create, name='enrollment_application_create'),

@@ -16,7 +16,8 @@ from .models import (
     Classroom, Student, Parent, DocumentType, StudentDocument,
     Subject, Schedule, Quarter, DailyGrade, QuarterGrade,
     Attendance, Homework, Contract, Payment, SmsNotificationConfig, SmsLog,
-    ChatGroup, ChatMessage
+    ChatGroup, ChatMessage, HomeworkSubmission, StudentTransfer, StudentBalance,
+    OnlinePayment
 )
 from enrollment.models import Lead, Grade, AcademicYear
 from django.contrib.auth.models import User, Group
@@ -285,6 +286,20 @@ def student_detail(request, pk):
         ).aggregate(s=Sum('amount'))['s'] or 0
         total_debt += contract.effective_fee - paid
     
+    # Quarterly results
+    quarters = Quarter.objects.filter(academic_year=student.classroom.academic_year if student.classroom else None)
+    quarterly_results = []
+    for quarter in quarters:
+        grades = student.get_quarter_grades_by_subject(quarter)
+        quarterly_results.append({
+            'quarter': quarter,
+            'grades': grades,
+            'average': round(sum(grades.values()) / len(grades), 2) if grades else 0,
+        })
+    
+    # Balance for current month
+    balance_info = student.get_balance_for_month(today.year, today.month)
+    
     context = {
         'student': student,
         'documents': documents,
@@ -297,6 +312,12 @@ def student_detail(request, pk):
         'homeworks': homeworks,
         'chat_groups': chat_groups,
         'total_debt': total_debt,
+        'quarterly_results': quarterly_results,
+        'balance_info': balance_info,
+        'discount_details': student.get_discount_details(),
+        'has_discount': student.has_discount,
+        'average_grade': student.get_average_grade(),
+        'attendance_rate': student.get_attendance_rate(),
         'page_title': f'O\'quvchi: {student.full_name}',
     }
     return render(request, 'students/student_detail.html', context)
@@ -730,6 +751,7 @@ def sms_send_now(request):
                     })
         
         # Send SMS (Twilio or local SMS gateway)
+        sent_count = 0
         for d in debtors:
             message = config.message_template.format(
                 parent_name=d['parent'].full_name,
@@ -740,7 +762,7 @@ def sms_send_now(request):
             
             # TODO: Real SMS sending via Twilio or local provider
             # For now, just log
-            SmsLog.objects.create(
+            sms_log = SmsLog.objects.create(
                 parent=d['parent'],
                 student=d['student'],
                 contract=d['contract'],
@@ -750,6 +772,22 @@ def sms_send_now(request):
                 is_sent=False,
                 error='SMS not sent (test mode)'
             )
+        
+            # Real SMS integration (Twilio example):
+            # try:
+            #     from twilio.rest import Client
+            #     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            #     message_sent = client.messages.create(
+            #         body=message,
+            #         from_=settings.TWILIO_PHONE_NUMBER,
+            #         to=d['phone']
+            #     )
+            #     sms_log.is_sent = True
+            #     sms_log.save()
+            #     sent_count += 1
+            # except Exception as e:
+            #     sms_log.error = str(e)
+            #     sms_log.save()
         
         messages.success(request, f'{len(debtors)} ta qarzdor ota-onaga SMS yuborishga yuborildi')
         return redirect('students_sms_logs')
@@ -771,6 +809,82 @@ def sms_logs(request):
         'page_title': 'SMS xabarnomalar logi',
     }
     return render(request, 'students/sms_logs.html', context)
+
+
+@csrf_exempt
+@require_POST
+def sms_daily_task(request):
+    """Kunlik SMS yuborish task (Cron job yoki Celery orqali chaqiriladi)"""
+    # Faqat superuser yoki API token bilan
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    config = SmsNotificationConfig.objects.first()
+    if not config or not config.is_active:
+        return JsonResponse({'error': 'SMS tizimi faol emas', 'sent': 0})
+    
+    today = timezone.now().date()
+    
+    # Faqat belgilangan kunda yuborish
+    if today.day != config.day_of_month:
+        return JsonResponse({'message': f"Bugun {today.day}-kuni, SMS {config.day_of_month}-kuni yuboriladi", 'sent': 0})
+    
+    debtors = []
+    
+    for contract in Contract.objects.filter(is_active=True):
+        paid = contract.payments.filter(
+            payment_date__month=today.month,
+            payment_date__year=today.year
+        ).aggregate(s=Sum('amount'))['s'] or 0
+        
+        if paid < contract.effective_fee:
+            debt = contract.effective_fee - paid
+            for parent in contract.student.parents.all():
+                debtors.append({
+                    'parent': parent,
+                    'student': contract.student,
+                    'contract': contract,
+                    'debt': debt,
+                    'phone': parent.phone
+                })
+    
+    sent_count = 0
+    for d in debtors:
+        message = config.message_template.format(
+            parent_name=d['parent'].full_name,
+            student_name=d['student'].full_name,
+            contract_number=d['contract'].contract_number,
+            debt_amount=d['debt']
+        )
+        
+        sms_log = SmsLog.objects.create(
+            parent=d['parent'],
+            student=d['student'],
+            contract=d['contract'],
+            phone=d['phone'],
+            message=message,
+            debt_amount=d['debt'],
+            is_sent=False,
+            error='Test mode'
+        )
+        
+        # Real SMS integration
+        # try:
+        #     from twilio.rest import Client
+        #     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        #     message_sent = client.messages.create(
+        #         body=message,
+        #         from_=settings.TWILIO_PHONE_NUMBER,
+        #         to=d['phone']
+        #     )
+        #     sms_log.is_sent = True
+        #     sms_log.save()
+        #     sent_count += 1
+        # except Exception as e:
+        #     sms_log.error = str(e)
+        #     sms_log.save()
+    
+    return JsonResponse({'message': f'{sent_count} ta SMS yuborildi', 'sent': sent_count, 'total_debtors': len(debtors)})
 
 
 # ── Chat ──────────────────────────────────────────────────────────────
@@ -1028,3 +1142,616 @@ def api_send_sms(request):
         return JsonResponse({'status': 'ok'})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+# ── Attendance Edit ───────────────────────────────────────────────────
+@login_required
+@students_required
+def attendance_edit(request, pk):
+    attendance = get_object_or_404(Attendance, pk=pk)
+
+    if request.method == 'POST':
+        attendance.status = request.POST.get('status', attendance.status)
+        attendance.note = request.POST.get('note', '').strip()
+        subject_id = request.POST.get('subject') or None
+        attendance.subject_id = subject_id
+        attendance.save()
+        messages.success(request, 'Davomat yangilandi')
+        return redirect('students_detail', pk=attendance.student.pk)
+
+    subjects = Subject.objects.all()
+    context = {
+        'attendance': attendance,
+        'subjects': subjects,
+        'page_title': 'Davomatni tahrirlash',
+    }
+    return render(request, 'students/attendance_edit.html', context)
+
+
+@login_required
+@students_required
+def attendance_delete(request, pk):
+    attendance = get_object_or_404(Attendance, pk=pk)
+    student_pk = attendance.student.pk
+    attendance.delete()
+    messages.success(request, 'Davomat o\'chirildi')
+    return redirect('students_detail', pk=student_pk)
+
+
+@login_required
+@students_required
+def attendance_list(request):
+    """Barcha davomatlar ro'yxati — filter va export bilan"""
+    classroom_filter = request.GET.get('classroom')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    status_filter = request.GET.get('status', '')
+    student_filter = request.GET.get('student', '')
+
+    qs = Attendance.objects.select_related('student', 'subject', 'marked_by').all()
+
+    if classroom_filter:
+        qs = qs.filter(student__classroom_id=classroom_filter)
+    if date_from:
+        qs = qs.filter(date__gte=date_from)
+    if date_to:
+        qs = qs.filter(date__lte=date_to)
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if student_filter:
+        qs = qs.filter(student_id=student_filter)
+
+    paginator = Paginator(qs, 50)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    context = {
+        'page_obj': page_obj,
+        'classrooms': Classroom.objects.all(),
+        'students': Student.objects.all(),
+        'classroom_filter': classroom_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'status_filter': status_filter,
+        'student_filter': student_filter,
+        'status_choices': Attendance.STATUS_CHOICES,
+        'page_title': 'Davomat ro\'yxati',
+    }
+    return render(request, 'students/attendance_list.html', context)
+
+
+# ── Excel Import / Export ─────────────────────────────────────────────
+@login_required
+@students_required
+def export_students_excel(request):
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    import io
+
+    qs = Student.objects.select_related('classroom').prefetch_related('parents').all()
+
+    classroom_filter = request.GET.get('classroom')
+    if classroom_filter:
+        qs = qs.filter(classroom_id=classroom_filter)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "O'quvchilar"
+
+    headers = ['#', 'Familiya', 'Ism', 'Otasining ismi', 'Jinsi', 'Tug\'ilgan sana',
+               'Sinf', 'Telefon (ota-ona)', 'Manzil', 'Faol', 'Ro\'yxatga olingan']
+    hfill = PatternFill(start_color='1a73e8', end_color='1a73e8', fill_type='solid')
+    hfont = Font(color='FFFFFF', bold=True)
+
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.fill = hfill
+        cell.font = hfont
+        cell.alignment = Alignment(horizontal='center')
+
+    for i, s in enumerate(qs, 2):
+        parent_phone = s.parents.first().phone if s.parents.exists() else ''
+        ws.cell(row=i, column=1, value=i - 1)
+        ws.cell(row=i, column=2, value=s.last_name)
+        ws.cell(row=i, column=3, value=s.first_name)
+        ws.cell(row=i, column=4, value=s.middle_name)
+        ws.cell(row=i, column=5, value=s.get_gender_display())
+        ws.cell(row=i, column=6, value=str(s.birth_date))
+        ws.cell(row=i, column=7, value=str(s.classroom) if s.classroom else '')
+        ws.cell(row=i, column=8, value=parent_phone)
+        ws.cell(row=i, column=9, value=s.address)
+        ws.cell(row=i, column=10, value='Ha' if s.is_active else "Yo'q")
+        ws.cell(row=i, column=11, value=str(s.enrolled_date))
+
+    for col in ws.columns:
+        max_len = max((len(str(c.value or '')) for c in col), default=10)
+        ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    response = HttpResponse(
+        buf.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="students.xlsx"'
+    return response
+
+
+@login_required
+@students_required
+def import_students_excel(request):
+    import openpyxl
+    from django.utils.dateparse import parse_date
+
+    if request.method == 'POST':
+        file = request.FILES.get('file')
+        if not file:
+            messages.error(request, 'Fayl tanlanmadi')
+            return redirect('students_list')
+
+        try:
+            wb = openpyxl.load_workbook(file)
+            ws = wb.active
+            created = 0
+            errors = []
+
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                if not row[0]:
+                    continue
+                try:
+                    last_name = str(row[0] or '').strip()
+                    first_name = str(row[1] or '').strip()
+                    middle_name = str(row[2] or '').strip()
+                    gender = 'M' if str(row[3] or 'M').upper() in ('M', 'ERKAK', "O'G'IL") else 'F'
+                    birth_date = parse_date(str(row[4])) if row[4] else timezone.now().date()
+                    classroom_name = str(row[5] or '').strip()
+                    phone = str(row[6] or '').strip()
+
+                    if not first_name or not last_name:
+                        continue
+
+                    classroom = None
+                    if classroom_name:
+                        classroom = Classroom.objects.filter(name=classroom_name).first()
+
+                    student = Student.objects.create(
+                        first_name=first_name,
+                        last_name=last_name,
+                        middle_name=middle_name,
+                        gender=gender,
+                        birth_date=birth_date or timezone.now().date(),
+                        classroom=classroom,
+                    )
+
+                    if phone:
+                        parent, _ = Parent.objects.get_or_create(
+                            phone=phone,
+                            defaults={'first_name': 'Ota-ona', 'last_name': last_name}
+                        )
+                        student.parents.add(parent)
+
+                    created += 1
+                except Exception as e:
+                    errors.append(str(e))
+
+            messages.success(request, f'{created} ta o\'quvchi import qilindi')
+            if errors:
+                messages.warning(request, f'{len(errors)} ta xato: {"; ".join(errors[:3])}')
+        except Exception as e:
+            messages.error(request, f'Fayl o\'qishda xato: {e}')
+
+        return redirect('students_list')
+
+    context = {'page_title': 'O\'quvchilarni import qilish'}
+    return render(request, 'students/import_students.html', context)
+
+
+@login_required
+@students_required
+def export_attendance_excel(request):
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    import io
+
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    classroom_filter = request.GET.get('classroom', '')
+
+    qs = Attendance.objects.select_related('student', 'subject', 'marked_by').all()
+    if date_from:
+        qs = qs.filter(date__gte=date_from)
+    if date_to:
+        qs = qs.filter(date__lte=date_to)
+    if classroom_filter:
+        qs = qs.filter(student__classroom_id=classroom_filter)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Davomat'
+
+    headers = ['#', 'O\'quvchi', 'Sana', 'Fan', 'Holat', 'Izoh', 'Belgilagan']
+    hfill = PatternFill(start_color='0f9d58', end_color='0f9d58', fill_type='solid')
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.fill = hfill
+        cell.font = Font(color='FFFFFF', bold=True)
+        cell.alignment = Alignment(horizontal='center')
+
+    for i, a in enumerate(qs, 2):
+        ws.cell(row=i, column=1, value=i - 1)
+        ws.cell(row=i, column=2, value=str(a.student))
+        ws.cell(row=i, column=3, value=str(a.date))
+        ws.cell(row=i, column=4, value=str(a.subject) if a.subject else '')
+        ws.cell(row=i, column=5, value=a.get_status_display())
+        ws.cell(row=i, column=6, value=a.note)
+        ws.cell(row=i, column=7, value=a.marked_by.username if a.marked_by else '')
+
+    for col in ws.columns:
+        ws.column_dimensions[col[0].column_letter].width = 18
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    response = HttpResponse(
+        buf.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="attendance.xlsx"'
+    return response
+
+
+@login_required
+@students_required
+def export_payments_excel(request):
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    import io
+
+    qs = Payment.objects.select_related('student', 'contract', 'received_by').all()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if date_from:
+        qs = qs.filter(payment_date__gte=date_from)
+    if date_to:
+        qs = qs.filter(payment_date__lte=date_to)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "To'lovlar"
+
+    headers = ['#', 'O\'quvchi', 'Shartnoma', 'Summa', 'Usul', 'Sana', 'Oy uchun', 'Tranzaksiya ID', 'Izoh', 'Qabul qildi']
+    hfill = PatternFill(start_color='ea4335', end_color='ea4335', fill_type='solid')
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.fill = hfill
+        cell.font = Font(color='FFFFFF', bold=True)
+        cell.alignment = Alignment(horizontal='center')
+
+    for i, p in enumerate(qs, 2):
+        ws.cell(row=i, column=1, value=i - 1)
+        ws.cell(row=i, column=2, value=str(p.student))
+        ws.cell(row=i, column=3, value=p.contract.contract_number if p.contract else '')
+        ws.cell(row=i, column=4, value=float(p.amount))
+        ws.cell(row=i, column=5, value=p.get_method_display())
+        ws.cell(row=i, column=6, value=str(p.payment_date))
+        ws.cell(row=i, column=7, value=str(p.month_for))
+        ws.cell(row=i, column=8, value=p.transaction_id)
+        ws.cell(row=i, column=9, value=p.note)
+        ws.cell(row=i, column=10, value=p.received_by.username if p.received_by else '')
+
+    for col in ws.columns:
+        ws.column_dimensions[col[0].column_letter].width = 18
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    response = HttpResponse(
+        buf.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="payments.xlsx"'
+    return response
+
+
+# ── Online Payment Gateway Views ──────────────────────────────────────
+
+@login_required
+@students_required
+def online_payment_list(request):
+    qs = OnlinePayment.objects.select_related('student', 'contract').all()
+    provider_filter = request.GET.get('provider', '')
+    status_filter = request.GET.get('status', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    if provider_filter:
+        qs = qs.filter(provider=provider_filter)
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if date_from:
+        qs = qs.filter(created_at__date__gte=date_from)
+    if date_to:
+        qs = qs.filter(created_at__date__lte=date_to)
+
+    paginator = Paginator(qs, 30)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    context = {
+        'page_obj': page_obj,
+        'provider_filter': provider_filter,
+        'status_filter': status_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'providers': OnlinePayment.PROVIDER_CHOICES,
+        'statuses': OnlinePayment.STATUS_CHOICES,
+        'page_title': 'Online to\'lovlar',
+    }
+    return render(request, 'students/online_payment_list.html', context)
+
+
+# ── Payme Webhook ─────────────────────────────────────────────────────
+@csrf_exempt
+def payme_webhook(request):
+    """Payme (merchant API) webhook handler"""
+    import json as _json
+    try:
+        data = _json.loads(request.body)
+        method = data.get('method', '')
+        params = data.get('params', {})
+        _id = data.get('id', 1)
+
+        if method == 'CheckPerformTransaction':
+            order_id = params.get('account', {}).get('order_id', '')
+            contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+            if not contract:
+                return JsonResponse({'id': _id, 'error': {'code': -31050, 'message': 'Order not found'}})
+            return JsonResponse({'id': _id, 'result': {'allow': True}})
+
+        elif method == 'CreateTransaction':
+            order_id = params.get('account', {}).get('order_id', '')
+            transaction_id = params.get('id', '')
+            amount = params.get('amount', 0) / 100  # tiyin -> so'm
+
+            contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+            if not contract:
+                return JsonResponse({'id': _id, 'error': {'code': -31050, 'message': 'Order not found'}})
+
+            op, created = OnlinePayment.objects.get_or_create(
+                transaction_id=transaction_id,
+                defaults={
+                    'provider': 'payme',
+                    'order_id': order_id,
+                    'student': contract.student,
+                    'contract': contract,
+                    'amount': amount,
+                    'status': 'pending',
+                    'raw_request': data,
+                }
+            )
+            return JsonResponse({'id': _id, 'result': {
+                'create_time': int(op.created_at.timestamp() * 1000),
+                'transaction': str(op.pk),
+                'state': 1,
+            }})
+
+        elif method == 'PerformTransaction':
+            transaction_id = params.get('id', '')
+            op = OnlinePayment.objects.filter(transaction_id=transaction_id, provider='payme').first()
+            if not op:
+                return JsonResponse({'id': _id, 'error': {'code': -31003, 'message': 'Transaction not found'}})
+
+            if op.status != 'paid':
+                op.status = 'paid'
+                op.confirmed_at = timezone.now()
+                op.save()
+                _confirm_online_payment(op)
+
+            return JsonResponse({'id': _id, 'result': {
+                'transaction': str(op.pk),
+                'perform_time': int(op.confirmed_at.timestamp() * 1000),
+                'state': 2,
+            }})
+
+        elif method == 'CancelTransaction':
+            transaction_id = params.get('id', '')
+            op = OnlinePayment.objects.filter(transaction_id=transaction_id).first()
+            if op:
+                op.status = 'cancelled'
+                op.save()
+            return JsonResponse({'id': _id, 'result': {'state': -1, 'cancel_time': int(timezone.now().timestamp() * 1000), 'transaction': str(op.pk) if op else '0'}})
+
+        elif method == 'CheckTransaction':
+            transaction_id = params.get('id', '')
+            op = OnlinePayment.objects.filter(transaction_id=transaction_id).first()
+            if not op:
+                return JsonResponse({'id': _id, 'error': {'code': -31003, 'message': 'Transaction not found'}})
+            state_map = {'pending': 1, 'paid': 2, 'cancelled': -1, 'failed': -2}
+            return JsonResponse({'id': _id, 'result': {
+                'create_time': int(op.created_at.timestamp() * 1000),
+                'perform_time': int(op.confirmed_at.timestamp() * 1000) if op.confirmed_at else 0,
+                'cancel_time': 0,
+                'transaction': str(op.pk),
+                'state': state_map.get(op.status, 1),
+                'reason': None,
+            }})
+
+    except Exception as e:
+        return JsonResponse({'id': 1, 'error': {'code': -32400, 'message': str(e)}})
+
+    return JsonResponse({'id': 1, 'error': {'code': -32601, 'message': 'Method not found'}})
+
+
+# ── Click Webhook ─────────────────────────────────────────────────────
+@csrf_exempt
+def click_webhook(request):
+    """Click (SHOP API) webhook handler"""
+    if request.method != 'POST':
+        return JsonResponse({'error': -1, 'error_note': 'Method not allowed'})
+
+    try:
+        action = int(request.POST.get('action', -1))
+        click_trans_id = request.POST.get('click_trans_id', '')
+        merchant_trans_id = request.POST.get('merchant_trans_id', '')  # order_id
+        amount = float(request.POST.get('amount', 0))
+        error = int(request.POST.get('error', 0))
+
+        contract = Contract.objects.filter(contract_number=merchant_trans_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'error': -5, 'error_note': 'User does not exist'})
+
+        if action == 0:  # Prepare
+            op, _ = OnlinePayment.objects.get_or_create(
+                transaction_id=click_trans_id,
+                defaults={
+                    'provider': 'click',
+                    'order_id': merchant_trans_id,
+                    'student': contract.student,
+                    'contract': contract,
+                    'amount': amount,
+                    'status': 'pending',
+                    'raw_request': dict(request.POST),
+                }
+            )
+            return JsonResponse({
+                'click_trans_id': click_trans_id,
+                'merchant_trans_id': merchant_trans_id,
+                'merchant_prepare_id': op.pk,
+                'error': 0,
+                'error_note': 'Success',
+            })
+
+        elif action == 1:  # Complete
+            op = OnlinePayment.objects.filter(transaction_id=click_trans_id, provider='click').first()
+            if not op:
+                return JsonResponse({'error': -6, 'error_note': 'Transaction not found'})
+
+            if error == 0 and op.status != 'paid':
+                op.status = 'paid'
+                op.confirmed_at = timezone.now()
+                op.save()
+                _confirm_online_payment(op)
+            elif error < 0:
+                op.status = 'cancelled'
+                op.save()
+
+            return JsonResponse({
+                'click_trans_id': click_trans_id,
+                'merchant_trans_id': merchant_trans_id,
+                'merchant_confirm_id': op.pk,
+                'error': 0,
+                'error_note': 'Success',
+            })
+
+    except Exception as e:
+        return JsonResponse({'error': -9, 'error_note': str(e)})
+
+    return JsonResponse({'error': -1, 'error_note': 'Unknown action'})
+
+
+# ── Uzum (Apelsin) Webhook ────────────────────────────────────────────
+@csrf_exempt
+def uzum_webhook(request):
+    """Uzum Bank webhook handler"""
+    import json as _json
+    try:
+        data = _json.loads(request.body)
+        service_id = data.get('serviceId', '')
+        transaction_id = str(data.get('transactionId', ''))
+        order_id = str(data.get('params', {}).get('account', ''))
+        amount = float(data.get('amount', 0)) / 100
+        status = data.get('status', '')
+
+        contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
+        if not contract:
+            return JsonResponse({'status': -1, 'desc': 'Order not found'})
+
+        op, _ = OnlinePayment.objects.get_or_create(
+            transaction_id=transaction_id,
+            defaults={
+                'provider': 'uzum',
+                'order_id': order_id,
+                'student': contract.student,
+                'contract': contract,
+                'amount': amount,
+                'status': 'pending',
+                'raw_request': data,
+            }
+        )
+
+        if status == 'CONFIRMED' and op.status != 'paid':
+            op.status = 'paid'
+            op.confirmed_at = timezone.now()
+            op.save()
+            _confirm_online_payment(op)
+
+        return JsonResponse({'status': 0, 'desc': 'Success'})
+    except Exception as e:
+        return JsonResponse({'status': -1, 'desc': str(e)})
+
+
+def _confirm_online_payment(op: OnlinePayment):
+    """
+    Online to'lov tasdiqlanganda:
+    1. Payment yaratish
+    2. Buxgalteriyaga Transaction yozish
+    """
+    from accounting.models import Transaction, CashRegister
+
+    if op.payment:
+        return  # Allaqachon yaratilgan
+
+    month_for = op.month_for or timezone.now().date().replace(day=1)
+
+    payment = Payment.objects.create(
+        student=op.student,
+        contract=op.contract,
+        amount=op.amount,
+        method=op.provider,
+        payment_date=op.confirmed_at.date() if op.confirmed_at else timezone.now().date(),
+        month_for=month_for,
+        note=f'{op.get_provider_display()} orqali online to\'lov. TxID: {op.transaction_id}',
+        transaction_id=op.transaction_id,
+        is_confirmed=True,
+    )
+    op.payment = payment
+    op.save(update_fields=['payment'])
+
+    # Buxgalteriyaga yozish
+    try:
+        cash_register = CashRegister.objects.filter(
+            name__icontains=op.provider
+        ).first() or CashRegister.objects.first()
+
+        if cash_register:
+            Transaction.objects.create(
+                cash_register=cash_register,
+                amount=op.amount,
+                transaction_type='income',
+                description=(
+                    f"{op.get_provider_display()} to'lov | "
+                    f"O'quvchi: {op.student} | "
+                    f"Shartnoma: {op.contract.contract_number if op.contract else '—'} | "
+                    f"TxID: {op.transaction_id}"
+                ),
+            )
+            cash_register.balance += op.amount
+            cash_register.save(update_fields=['balance'])
+    except Exception:
+        pass  # Buxgalteriya xatosi to'lovni bloklamasin
+
+
+# ── Payment Init (redirect to gateway) ───────────────────────────────
+@login_required
+@students_required
+def payment_init(request, pk):
+    """To'lov tizimiga yo'naltirish sahifasi"""
+    student = get_object_or_404(Student, pk=pk)
+    contracts = student.contracts.filter(is_active=True)
+
+    context = {
+        'student': student,
+        'contracts': contracts,
+        'page_title': f'Online to\'lov: {student.full_name}',
+        'providers': OnlinePayment.PROVIDER_CHOICES,
+    }
+    return render(request, 'students/payment_init.html', context)

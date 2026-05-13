@@ -193,6 +193,9 @@
           <td>{{ a.subject|default:"—" }}</td>
           <td><span class="badge badge-{% if a.status == 'present' %}success{% elif a.status == 'late' %}warning{% else %}danger{% endif %}">{{ a.get_status_display }}</span></td>
           <td>{{ a.note|default:"—" }}</td>
+          <td>
+            <a href="{% url 'students_attendance_edit' a.pk %}" class="btn btn-sm" title="Tahrirlash"><i class="fa-solid fa-pen"></i></a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -246,6 +249,8 @@
       <p style="color:#888;">To'lovlar yo'q.</p>
       {% endif %}
       <a href="{% url 'students_payment_add' student.pk %}" class="btn btn-primary" style="margin-top:12px;"><i class="fa-solid fa-plus"></i> To'lov qo'shish</a>
+      <a href="{% url 'students_payment_init' student.pk %}" class="btn btn-outline-primary" style="margin-top:12px;margin-left:8px;"><i class="fa-solid fa-credit-card"></i> Online to'lov</a>
+      <a href="{% url 'students_payments_export' %}?student={{ student.pk }}" class="btn btn-outline-success" style="margin-top:12px;margin-left:8px;"><i class="fa-solid fa-file-excel"></i> Excel</a>
     </div>
   </div>
 </div>

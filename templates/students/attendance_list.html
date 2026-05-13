@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}Davomat ro'yxati{% endblock %}
+{% block content %}
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <select name="classroom" class="form-select form-select-sm">
+          <option value="">Barcha sinflar</option>
+          {% for c in classrooms %}<option value="{{ c.pk }}" {% if classroom_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="student" class="form-select form-select-sm">
+          <option value="">Barcha o'quvchilar</option>
+          {% for s in students %}<option value="{{ s.pk }}" {% if student_filter == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">Barcha holatlar</option>
+          {% for code, label in status_choices %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2"><input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}"></div>
+      <div class="col-md-2"><input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}"></div>
+      <div class="col-md-1"><button class="btn btn-primary btn-sm w-100"><i class="fa-solid fa-search"></i></button></div>
+      <div class="col-md-1">
+        <a href="{% url 'students_attendance_export' %}?{{ request.GET.urlencode }}" class="btn btn-success btn-sm w-100" title="Excel export">
+          <i class="fa-solid fa-file-excel"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span class="fw-bold">Davomat — {{ page_obj.paginator.count }} ta yozuv</span>
+    <a href="{% url 'students_attendance' %}" class="btn btn-primary btn-sm">
+      <i class="fa-solid fa-plus me-1"></i>Yangi davomat
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:13px;">
+        <thead class="table-light">
+          <tr>
+            <th>#</th><th>O'quvchi</th><th>Sana</th><th>Fan</th>
+            <th>Holat</th><th>Izoh</th><th>Belgilagan</th><th>Amal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in page_obj %}
+          <tr>
+            <td class="text-muted">{{ forloop.counter }}</td>
+            <td><a href="{% url 'students_detail' a.student.pk %}">{{ a.student }}</a></td>
+            <td>{{ a.date }}</td>
+            <td>{{ a.subject|default:"—" }}</td>
+            <td>
+              {% if a.status == 'present' %}<span class="badge bg-success">Keldi</span>
+              {% elif a.status == 'absent' %}<span class="badge bg-danger">Kelmadi</span>
+              {% elif a.status == 'late' %}<span class="badge bg-warning text-dark">Kech keldi</span>
+              {% else %}<span class="badge bg-secondary">Uzrli</span>{% endif %}
+            </td>
+            <td>{{ a.note|default:"—" }}</td>
+            <td>{{ a.marked_by.username|default:"—" }}</td>
+            <td>
+              <a href="{% url 'students_attendance_edit' a.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
+                <i class="fa-solid fa-pen"></i>
+              </a>
+              <a href="{% url 'students_attendance_delete' a.pk %}"
+                 class="btn btn-sm btn-outline-danger py-0 px-2"
+                 onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                <i class="fa-solid fa-trash"></i>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">Davomat topilmadi</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer">
+    <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">‹</a></li>{% endif %}
+      <li class="page-item active"><a class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</a></li>
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">›</a></li>{% endif %}
+    </ul></nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

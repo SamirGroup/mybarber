@@ -1,0 +1,235 @@
+{% extends 'callcenter/base.html' %}
+{% block title %}{{ lead.full_name }}{% endblock %}
+{% block page_title %}Lead: {{ lead.full_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .status-badge { border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 700; }
+  .history-item { border-left: 3px solid #e2e8f0; padding-left: 14px; margin-bottom: 14px; }
+  .comment-bubble { background: #f1f5f9; border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Lead Info -->
+  <div class="col-xl-4">
+    <div class="panel mb-3">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 class="fw-bold mb-1">{{ lead.full_name }}</h5>
+          {% if lead.current_status %}
+          <span class="status-badge badge-{{ lead.current_status.code }}">{{ lead.current_status.name }}</span>
+          {% endif %}
+        </div>
+        {% if lead.is_closed %}<span class="badge bg-secondary">Yopilgan</span>{% endif %}
+      </div>
+      <table class="table table-sm mb-0" style="font-size:13px;">
+        <tr><td class="text-muted">Telefon</td><td><a href="tel:{{ lead.phone_number }}">{{ lead.phone_number }}</a></td></tr>
+        {% if lead.phone_number2 %}<tr><td class="text-muted">Telefon 2</td><td>{{ lead.phone_number2 }}</td></tr>{% endif %}
+        <tr><td class="text-muted">Hudud</td><td>{{ lead.region|default:"—" }}</td></tr>
+        <tr><td class="text-muted">Mahsulot</td><td>{{ lead.product_interest|default:"—" }}</td></tr>
+        <tr><td class="text-muted">Kampaniya</td><td>{{ lead.campaign_name|default:"—" }}</td></tr>
+        <tr><td class="text-muted">Adset</td><td>{{ lead.adset_name|default:"—" }}</td></tr>
+        <tr><td class="text-muted">Operator</td><td>{{ lead.assigned_operator.username|default:"—" }}</td></tr>
+        <tr><td class="text-muted">Callback</td><td>{{ lead.callback_date|date:"d.m.Y H:i"|default:"—" }}</td></tr>
+        <tr><td class="text-muted">Kelgan vaqt</td><td>{{ lead.crm_received_time|date:"d.m.Y H:i" }}</td></tr>
+      </table>
+    </div>
+
+    <!-- Status Update -->
+    {% if not lead.is_closed %}
+    <div class="panel mb-3">
+      <h6 class="fw-bold mb-3">Status o'zgartirish</h6>
+      <div class="d-grid gap-2">
+        {% for s in statuses %}
+        <button class="btn btn-sm btn-outline-secondary text-start status-btn" data-code="{{ s.code }}" data-name="{{ s.name }}">
+          <span class="status-badge badge-{{ s.code }} me-2">{{ s.name }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if is_cc_admin %}
+    <!-- Assign Operator -->
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Operator biriktirish</h6>
+      <form id="assignForm">
+        {% csrf_token %}
+        <select class="form-select form-select-sm mb-2" id="assignOperator">
+          {% for op in operators %}
+          <option value="{{ op.pk }}" {% if lead.assigned_operator == op %}selected{% endif %}>{{ op.username }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm w-100">Biriktirish</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Comments + History -->
+  <div class="col-xl-8">
+    <!-- Add Comment -->
+    <div class="panel mb-3">
+      <h6 class="fw-bold mb-3">Izoh qo'shish</h6>
+      <form id="commentForm">
+        {% csrf_token %}
+        <textarea class="form-control mb-2" id="commentText" rows="2" placeholder="Izoh yozing..."></textarea>
+        <button type="submit" class="btn btn-primary btn-sm">Yuborish</button>
+      </form>
+      <div id="commentsList" class="mt-3">
+        {% for c in comments %}
+        <div class="comment-bubble">
+          <div class="d-flex justify-content-between mb-1">
+            <strong style="font-size:12px;">{{ c.operator.username|default:"—" }}</strong>
+            <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
+          </div>
+          <div style="font-size:13px;">{{ c.comment_text }}</div>
+        </div>
+        {% empty %}
+        <p class="text-muted" style="font-size:13px;" id="noComments">Izohlar yo'q</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Status History -->
+    <div class="panel mb-3">
+      <h6 class="fw-bold mb-3">Status tarixi</h6>
+      {% for h in history %}
+      <div class="history-item">
+        <div class="d-flex justify-content-between">
+          <div style="font-size:13px;">
+            {% if h.old_status %}<span class="status-badge badge-{{ h.old_status.code }}">{{ h.old_status.name }}</span>{% endif %}
+            {% if h.old_status and h.new_status %}<i class="fa-solid fa-arrow-right mx-2 text-muted"></i>{% endif %}
+            {% if h.new_status %}<span class="status-badge badge-{{ h.new_status.code }}">{{ h.new_status.name }}</span>{% endif %}
+          </div>
+          <small class="text-muted">{{ h.changed_at|date:"d.m.Y H:i" }}</small>
+        </div>
+        {% if h.comment %}<div class="mt-1 text-muted" style="font-size:12px;">{{ h.comment }}</div>{% endif %}
+        <div style="font-size:11px; color:#94a3b8;">{{ h.operator.username|default:"Tizim" }}</div>
+      </div>
+      {% empty %}
+      <p class="text-muted" style="font-size:13px;">Tarix yo'q</p>
+      {% endfor %}
+    </div>
+
+    <!-- Callbacks -->
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Callbacklar</h6>
+      {% for cb in callbacks %}
+      <div class="d-flex justify-content-between align-items-center p-2 rounded mb-2" style="background:#f8fafc;font-size:13px;">
+        <div>
+          <i class="fa-solid fa-clock text-warning me-2"></i>
+          {{ cb.callback_datetime|date:"d.m.Y H:i" }}
+          {% if cb.callback_note %} — {{ cb.callback_note }}{% endif %}
+        </div>
+        {% if cb.is_done %}<span class="badge bg-success">Bajarildi</span>{% else %}<span class="badge bg-warning text-dark">Kutmoqda</span>{% endif %}
+      </div>
+      {% empty %}
+      <p class="text-muted" style="font-size:13px;">Callback yo'q</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title fw-bold">Status o'zgartirish: <span id="modalStatusName"></span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="statusForm">
+          {% csrf_token %}
+          <input type="hidden" id="statusCode" name="status_code">
+          <div class="mb-3" id="commentField">
+            <label class="form-label fw-semibold" style="font-size:13px;">Izoh <span id="commentRequired" class="text-danger"></span></label>
+            <textarea class="form-control" name="comment" id="statusComment" rows="3" placeholder="Natija haqida yozing..."></textarea>
+          </div>
+          <div class="mb-3 d-none" id="callbackField">
+            <label class="form-label fw-semibold" style="font-size:13px;">Callback sanasi <span class="text-danger">*</span></label>
+            <input type="datetime-local" class="form-control" name="callback_date" id="callbackDate">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Bekor</button>
+        <button class="btn btn-primary btn-sm" id="saveStatusBtn">Saqlash</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const leadPk = {{ lead.pk }};
+const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+
+// Status buttons
+document.querySelectorAll('.status-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const code = btn.dataset.code;
+    const name = btn.dataset.name;
+    document.getElementById('statusCode').value = code;
+    document.getElementById('modalStatusName').textContent = name;
+    document.getElementById('callbackField').classList.toggle('d-none', code !== 'callback');
+    document.getElementById('commentRequired').textContent = code === 'called' ? '*' : '';
+    statusModal.show();
+  });
+});
+
+document.getElementById('saveStatusBtn').addEventListener('click', () => {
+  const form = document.getElementById('statusForm');
+  const data = new FormData(form);
+  fetch(`/callcenter/leads/${leadPk}/status/`, { method: 'POST', body: data })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { Swal.fire('Xato', d.error, 'error'); return; }
+      statusModal.hide();
+      Swal.fire({ icon: 'success', title: 'Saqlandi', timer: 1200, showConfirmButton: false })
+        .then(() => location.reload());
+    });
+});
+
+// Comment form
+document.getElementById('commentForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const text = document.getElementById('commentText').value.trim();
+  if (!text) return;
+  const fd = new FormData();
+  fd.append('comment_text', text);
+  fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  fetch(`/callcenter/leads/${leadPk}/comment/`, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { alert(d.error); return; }
+      document.getElementById('commentText').value = '';
+      const noC = document.getElementById('noComments');
+      if (noC) noC.remove();
+      const div = document.createElement('div');
+      div.className = 'comment-bubble';
+      div.innerHTML = `<div class="d-flex justify-content-between mb-1"><strong style="font-size:12px;">${d.operator}</strong><small class="text-muted">${d.created_at}</small></div><div style="font-size:13px;">${d.comment}</div>`;
+      document.getElementById('commentsList').prepend(div);
+    });
+});
+
+// Assign operator
+{% if is_cc_admin %}
+document.getElementById('assignForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const fd = new FormData();
+  fd.append('operator_id', document.getElementById('assignOperator').value);
+  fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  fetch(`/callcenter/leads/${leadPk}/assign/`, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'ok') Swal.fire({ icon: 'success', title: `Biriktirildi: ${d.operator}`, timer: 1200, showConfirmButton: false });
+    });
+});
+{% endif %}
+</script>
+{% endblock %}

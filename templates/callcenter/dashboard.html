@@ -1,0 +1,208 @@
+{% extends 'callcenter/base.html' %}
+{% block title %}Dashboard — Call Center{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+  .lead-row:hover { background: #f8fafc; cursor: pointer; }
+  .status-badge { border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-label">Bugun Leadlar</div>
+          <div class="kpi-value">{{ today_leads }}</div>
+        </div>
+        <i class="fa-solid fa-users kpi-icon text-primary"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-label">Qo'ngiroq qilindi</div>
+          <div class="kpi-value text-success">{{ today_called }}</div>
+        </div>
+        <i class="fa-solid fa-phone kpi-icon text-success"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-label">Qo'ngiroq qilinmadi</div>
+          <div class="kpi-value text-danger">{{ today_not_called }}</div>
+        </div>
+        <i class="fa-solid fa-phone-slash kpi-icon text-danger"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-label">Qabul qilindi</div>
+          <div class="kpi-value text-success">{{ today_received }}</div>
+        </div>
+        <i class="fa-solid fa-circle-check kpi-icon text-success"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-label">Konversiya</div>
+          <div class="kpi-value text-primary">{{ conversion_rate }}%</div>
+        </div>
+        <i class="fa-solid fa-chart-line kpi-icon text-primary"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-label">Callback kutmoqda</div>
+          <div class="kpi-value text-warning">{{ pending_callback }}</div>
+        </div>
+        <i class="fa-solid fa-clock kpi-icon text-warning"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Lead Flow Chart -->
+  <div class="col-xl-8">
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Kunlik Lead Oqimi (7 kun)</h6>
+      </div>
+      <canvas id="leadFlowChart" height="100"></canvas>
+    </div>
+  </div>
+  <!-- Status Distribution -->
+  <div class="col-xl-4">
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Status taqsimoti</h6>
+      <canvas id="statusPieChart" height="180"></canvas>
+      <div class="mt-3">
+        {% for s in status_dist %}
+        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:12px;">
+          <span>{{ s.current_status__name|default:"Noma'lum" }}</span>
+          <span class="fw-bold">{{ s.cnt }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- New Leads -->
+  <div class="col-xl-{% if is_cc_admin %}8{% else %}12{% endif %}">
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Yangi Leadlar</h6>
+        <a href="{% url 'cc_lead_list' %}?status=new" class="btn btn-sm btn-outline-primary">Barchasi</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px;">
+          <thead class="table-light">
+            <tr><th>Ism</th><th>Telefon</th><th>Hudud</th><th>Kampaniya</th><th>Sana</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for lead in new_leads %}
+            <tr class="lead-row" onclick="window.location='{% url 'cc_lead_detail' lead.pk %}'">
+              <td class="fw-semibold">{{ lead.full_name }}</td>
+              <td>{{ lead.phone_number }}</td>
+              <td>{{ lead.region|default:"—" }}</td>
+              <td>{{ lead.campaign_name|default:"—"|truncatechars:20 }}</td>
+              <td>{{ lead.crm_received_time|date:"d.m H:i" }}</td>
+              <td><a href="{% url 'cc_lead_detail' lead.pk %}" class="btn btn-xs btn-primary btn-sm py-0 px-2">Ochish</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-3">Yangi lead yo'q</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if is_cc_admin %}
+  <!-- Operator Ranking -->
+  <div class="col-xl-4">
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Operator reytingi (bugun)</h6>
+      {% for op in operator_ranking %}
+      <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="background:#f8fafc;font-size:13px;">
+        <span><i class="fa-solid fa-user text-muted me-2"></i>{{ op.assigned_operator__username|default:"—" }}</span>
+        <span class="badge bg-primary">{{ op.cnt }} lead</span>
+      </div>
+      {% empty %}
+      <p class="text-muted text-center" style="font-size:13px;">Ma'lumot yo'q</p>
+      {% endfor %}
+    </div>
+
+    {% if is_cc_admin %}
+    <!-- Quick Test Lead -->
+    <div class="panel mt-3">
+      <h6 class="fw-bold mb-3"><i class="fa-solid fa-flask text-warning me-2"></i>Test Lead Yaratish</h6>
+      <form method="post" action="{% url 'cc_test_lead' %}">
+        {% csrf_token %}
+        <input class="form-control form-control-sm mb-2" name="full_name" placeholder="Ism familiya" required>
+        <input class="form-control form-control-sm mb-2" name="phone" placeholder="+998901234567" required>
+        <input class="form-control form-control-sm mb-2" name="region" placeholder="Hudud">
+        <input class="form-control form-control-sm mb-2" name="product_interest" placeholder="Mahsulot">
+        <button class="btn btn-warning btn-sm w-100">Test Lead Yuborish</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const chartLabels = {{ chart_labels|safe }};
+const chartData = {{ chart_data|safe }};
+
+new Chart(document.getElementById('leadFlowChart'), {
+  type: 'line',
+  data: {
+    labels: chartLabels,
+    datasets: [{
+      label: 'Leadlar',
+      data: chartData,
+      borderColor: '#1a73e8',
+      backgroundColor: 'rgba(26,115,232,0.08)',
+      fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 4,
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+const statusDist = {{ status_dist|safe }};
+if (statusDist.length) {
+  new Chart(document.getElementById('statusPieChart'), {
+    type: 'doughnut',
+    data: {
+      labels: statusDist.map(s => s.current_status__name || 'Noma\'lum'),
+      datasets: [{ data: statusDist.map(s => s.cnt), backgroundColor: ['#1a73e8','#34a853','#fbbc04','#ea4335','#9aa0a6','#00c6ff','#ff6d00','#7c4dff'], borderWidth: 2 }]
+    },
+    options: { responsive: true, cutout: '60%', plugins: { legend: { display: false } } }
+  });
+}
+</script>
+{% endblock %}

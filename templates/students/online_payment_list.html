@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}Online to'lovlar{% endblock %}
+{% block content %}
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <select name="provider" class="form-select form-select-sm">
+          <option value="">Barcha tizimlar</option>
+          {% for code, label in providers %}<option value="{{ code }}" {% if provider_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">Barcha statuslar</option>
+          {% for code, label in statuses %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2"><input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}"></div>
+      <div class="col-md-2"><input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}"></div>
+      <div class="col-md-1"><button class="btn btn-primary btn-sm w-100"><i class="fa-solid fa-search"></i></button></div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header fw-bold">
+    <i class="fa-solid fa-credit-card me-2"></i>Online to'lovlar — {{ page_obj.paginator.count }} ta
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:13px;">
+        <thead class="table-light">
+          <tr>
+            <th>#</th><th>Tizim</th><th>Tranzaksiya ID</th><th>O'quvchi</th>
+            <th>Shartnoma</th><th>Summa</th><th>Status</th><th>Sana</th><th>Tasdiqlangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for op in page_obj %}
+          <tr>
+            <td class="text-muted">{{ forloop.counter }}</td>
+            <td>
+              {% if op.provider == 'payme' %}<span class="badge" style="background:#00AAFF;">Payme</span>
+              {% elif op.provider == 'click' %}<span class="badge" style="background:#FF6600;">Click</span>
+              {% elif op.provider == 'uzum' %}<span class="badge" style="background:#7B2FBE;">Uzum</span>
+              {% elif op.provider == 'apelsin' %}<span class="badge" style="background:#FF8C00;">Apelsin</span>
+              {% else %}<span class="badge bg-secondary">{{ op.get_provider_display }}</span>{% endif %}
+            </td>
+            <td><code style="font-size:11px;">{{ op.transaction_id|truncatechars:24 }}</code></td>
+            <td>{% if op.student %}<a href="{% url 'students_detail' op.student.pk %}">{{ op.student }}</a>{% else %}—{% endif %}</td>
+            <td>{{ op.contract.contract_number|default:"—" }}</td>
+            <td class="fw-bold">{{ op.amount|floatformat:0 }} so'm</td>
+            <td>
+              {% if op.status == 'paid' %}<span class="badge bg-success">To'landi</span>
+              {% elif op.status == 'pending' %}<span class="badge bg-warning text-dark">Kutilmoqda</span>
+              {% elif op.status == 'cancelled' %}<span class="badge bg-secondary">Bekor</span>
+              {% elif op.status == 'failed' %}<span class="badge bg-danger">Xato</span>
+              {% else %}<span class="badge bg-info">{{ op.get_status_display }}</span>{% endif %}
+            </td>
+            <td>{{ op.created_at|date:"d.m.Y H:i" }}</td>
+            <td>{{ op.confirmed_at|date:"d.m.Y H:i"|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-4">Online to'lovlar topilmadi</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer">
+    <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">‹</a></li>{% endif %}
+      <li class="page-item active"><a class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</a></li>
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">›</a></li>{% endif %}
+    </ul></nav>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Webhook URLs info -->
+<div class="card shadow-sm mt-3">
+  <div class="card-header fw-bold"><i class="fa-solid fa-plug me-2"></i>Webhook URL lari</div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% for code, label in providers %}
+      <div class="col-md-4">
+        <div class="p-3 rounded border">
+          <div class="fw-bold mb-1">{{ label }}</div>
+          <code style="font-size:11px; word-break:break-all;">
+            {{ request.scheme }}://{{ request.get_host }}/students/webhook/{{ code }}/
+          </code>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="text-muted mt-3 mb-0" style="font-size:12px;">
+      <i class="fa-solid fa-info-circle me-1"></i>
+      Shartnoma raqami (<code>contract_number</code>) to'lov tizimida <strong>order_id</strong> sifatida ishlatiladi.
+      To'lov tasdiqlanganda avtomatik ravishda buxgalteriyaga yoziladi.
+    </p>
+  </div>
+</div>
+{% endblock %}

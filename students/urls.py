@@ -14,6 +14,8 @@ urlpatterns = [
     path('new/', views.student_create, name='students_create'),
     path('<int:pk>/', views.student_detail, name='students_detail'),
     path('<int:pk>/edit/', views.student_edit, name='students_edit'),
+    path('export/', views.export_students_excel, name='students_export'),
+    path('import/', views.import_students_excel, name='students_import'),
 
     # Documents
     path('<int:pk>/documents/upload/', views.document_upload, name='students_doc_upload'),
@@ -27,6 +29,10 @@ urlpatterns = [
 
     # Attendance
     path('attendance/', views.attendance_mark, name='students_attendance'),
+    path('attendance/list/', views.attendance_list, name='students_attendance_list'),
+    path('attendance/<int:pk>/edit/', views.attendance_edit, name='students_attendance_edit'),
+    path('attendance/<int:pk>/delete/', views.attendance_delete, name='students_attendance_delete'),
+    path('attendance/export/', views.export_attendance_excel, name='students_attendance_export'),
 
     # Homework
     path('homework/', views.homework_list, name='students_homework_list'),
@@ -35,12 +41,21 @@ urlpatterns = [
     # Finance
     path('<int:pk>/finance/', views.student_finance, name='students_finance'),
     path('<int:pk>/payment/add/', views.payment_add, name='students_payment_add'),
+    path('<int:pk>/payment/init/', views.payment_init, name='students_payment_init'),
     path('<int:pk>/contract/add/', views.contract_add, name='students_contract_add'),
+    path('payments/export/', views.export_payments_excel, name='students_payments_export'),
+    path('online-payments/', views.online_payment_list, name='students_online_payments'),
+
+    # Payment Gateway Webhooks
+    path('webhook/payme/', views.payme_webhook, name='students_payme_webhook'),
+    path('webhook/click/', views.click_webhook, name='students_click_webhook'),
+    path('webhook/uzum/', views.uzum_webhook, name='students_uzum_webhook'),
 
     # SMS
     path('sms/config/', views.sms_config, name='students_sms_config'),
     path('sms/send-now/', views.sms_send_now, name='students_sms_send'),
     path('sms/logs/', views.sms_logs, name='students_sms_logs'),
+    path('sms/daily-task/', views.sms_daily_task, name='students_sms_daily_task'),
 
     # Chat
     path('chat/', views.chat_list, name='students_chat_list'),
