@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-demo-only-change-in-production-#8dh8hxh')
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydа False qiling
-
+# DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
