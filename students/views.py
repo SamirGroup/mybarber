@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.db.models import Q, Count, Sum, Avg, F
 from django.core.paginator import Paginator
@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.conf import settings
 import json
+import io
 import os
 from datetime import date, timedelta
 
@@ -190,6 +191,8 @@ def student_list(request):
             Q(erp_number__icontains=search)
         )
     
+    ALLOWED_SORT = {'last_name', 'first_name', 'classroom', '-created_at'}
+    sort_by = sort_by if sort_by in ALLOWED_SORT else 'last_name'
     students = students.order_by(sort_by)
     
     paginator = Paginator(students, 25)
@@ -814,9 +817,10 @@ def sms_logs(request):
 @csrf_exempt
 @require_POST
 def sms_daily_task(request):
-    """Kunlik SMS yuborish task (Cron job yoki Celery orqali chaqiriladi)"""
-    # Faqat superuser yoki API token bilan
-    if not request.user.is_superuser:
+    """Kunlik SMS yuborish task — faqat API token bilan"""
+    api_token = request.headers.get('X-API-Token', '')
+    expected_token = getattr(settings, 'SMS_TASK_API_TOKEN', '')
+    if not expected_token or api_token != expected_token:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
     
     config = SmsNotificationConfig.objects.first()

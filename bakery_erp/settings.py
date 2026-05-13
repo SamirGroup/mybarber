@@ -160,6 +160,9 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
+# Internal API token for cron/celery tasks
+SMS_TASK_API_TOKEN = os.getenv('SMS_TASK_API_TOKEN', '')
+
 # Meta Webhook
 META_VERIFY_TOKEN = os.getenv('META_VERIFY_TOKEN', '')
 META_APP_SECRET = os.getenv('META_APP_SECRET', '')

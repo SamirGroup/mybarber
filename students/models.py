@@ -574,8 +574,8 @@ class ChatMessageRead(models.Model):
     
     class Meta:
         unique_together = ['message', 'user']
-    
-def __str__(self):
+
+    def __str__(self):
         return f"{self.user} read {self.message} at {self.read_at:%Y-%m-%d %H:%M}"
 
 
