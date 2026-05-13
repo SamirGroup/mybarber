@@ -27,10 +27,11 @@
 <div style="margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;">
   <a href="{% url 'students_create' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi o'quvchi</a>
   <a href="{% url 'students_classroom_create' %}" class="btn btn-primary"><i class="fa-solid fa-door-open"></i> Yangi sinf</a>
+  <a href="{% url 'students_classroom_list' %}" class="btn"><i class="fa-solid fa-school"></i> Sinflar</a>
   <a href="{% url 'students_list' %}" class="btn"><i class="fa-solid fa-users"></i> Barcha o'quvchilar</a>
-  <a href="{% url 'students_schedule' %}" class="btn"><i class="fa-solid fa-calendar"></i> Dars jadvali</a>
+  <a href="{% url 'students_attendance_list' %}" class="btn"><i class="fa-solid fa-clipboard-check"></i> Davomat</a>
+  <a href="{% url 'students_lesson_periods' %}" class="btn"><i class="fa-solid fa-clock"></i> Dars soatlari</a>
   <a href="{% url 'students_homework_list' %}" class="btn"><i class="fa-solid fa-book"></i> Uy vazifalar</a>
-  <a href="{% url 'students_chat_list' %}" class="btn"><i class="fa-solid fa-comments"></i> Chatlar</a>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">

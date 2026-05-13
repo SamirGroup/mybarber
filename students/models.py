@@ -212,6 +212,27 @@ class Subject(models.Model):
         return self.name
 
 
+class LessonPeriod(models.Model):
+    """Dars soatlari — kichik va katta sinflar uchun alohida"""
+    LEVEL_CHOICES = [
+        ('primary', 'Boshlang\'ich (1-4 sinf)'),
+        ('secondary', 'O\'rta (5-9 sinf)'),
+        ('high', 'Yuqori (10-11 sinf)'),
+    ]
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+    lesson_number = models.IntegerField(help_text='1-soat, 2-soat...')
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    label = models.CharField(max_length=50, blank=True, help_text='Masalan: 1-dars, Tanaffus')
+
+    class Meta:
+        ordering = ['level', 'lesson_number']
+        unique_together = ['level', 'lesson_number']
+
+    def __str__(self):
+        return f"{self.get_level_display()} | {self.lesson_number}-soat ({self.start_time:%H:%M}–{self.end_time:%H:%M})"
+
+
 class Schedule(models.Model):
     DAYS = [
         (1, 'Dushanba'), (2, 'Seshanba'), (3, 'Chorshanba'),
@@ -221,14 +242,26 @@ class Schedule(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     teacher = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='teaching_schedules')
     day_of_week = models.IntegerField(choices=DAYS)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    period = models.ForeignKey(LessonPeriod, null=True, blank=True, on_delete=models.SET_NULL, related_name='schedules')
+    # Eski maydonlar — period bo'lmasa fallback
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    room = models.CharField(max_length=50, blank=True, help_text='Xona raqami')
 
     class Meta:
-        ordering = ['day_of_week', 'start_time']
+        ordering = ['day_of_week', 'period__lesson_number', 'start_time']
 
     def __str__(self):
-        return f"{self.classroom} | {self.get_day_of_week_display()} {self.start_time} — {self.subject}"
+        period_str = f"{self.period.lesson_number}-soat" if self.period else str(self.start_time)
+        return f"{self.classroom} | {self.get_day_of_week_display()} {period_str} — {self.subject}"
+
+    @property
+    def effective_start(self):
+        return self.period.start_time if self.period else self.start_time
+
+    @property
+    def effective_end(self):
+        return self.period.end_time if self.period else self.end_time
 
 
 # ── Grades (Baholar) ──────────────────────────────────────────────────

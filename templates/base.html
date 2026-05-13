@@ -69,9 +69,15 @@
                 </li>
                 <!-- O'quvchilar bo'limi - superadmin uchun -->
                 <li>
-                    <a href="/students/" class="{% if '/students/' in request.path and request.path != '/students/' %}active{% endif %}">
+                    <a href="/students/" class="{% if '/students/' in request.path %}active{% endif %}">
                         <i class="fa-solid fa-user-graduate"></i>
                         <span>O'quvchilar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chalkboard"></i>
+                        <span>Sinflar</span>
                     </a>
                 </li>
                 <li>
@@ -81,9 +87,15 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-chalkboard"></i>
-                        <span>Sinflar</span>
+                    <a href="/students/attendance/list/" class="{% if '/students/attendance' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>Davomat</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/lesson-periods/" class="{% if '/students/lesson-periods' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Dars soatlari</span>
                     </a>
                 </li>
                 <li>
@@ -171,15 +183,27 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-chalkboard"></i>
+                        <span>Sinflar</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/students/list/" class="{% if '/students/list' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
                         <i class="fa-solid fa-list"></i>
                         <span>O'quvchilar ro'yxati</span>
                     </a>
                 </li>
                 <li>
-                    <a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-chalkboard"></i>
-                        <span>Sinflar</span>
+                    <a href="/students/attendance/list/" class="{% if '/students/attendance' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>Davomat</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/students/lesson-periods/" class="{% if '/students/lesson-periods' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Dars soatlari</span>
                     </a>
                 </li>
                 {% endif %}
@@ -314,6 +338,28 @@
                     <div class="breadcrumb">{% block breadcrumb %}{% endblock %}</div>
                 </div>
                 <div class="topbar-actions">
+                    <div class="theme-picker-wrap">
+                        <button class="icon-btn" id="themePickerBtn" title="Rang tanlash" onclick="toggleThemePicker()">
+                            <i class="fa-solid fa-palette"></i>
+                        </button>
+                        <div class="theme-picker-dropdown" id="themePickerDropdown">
+                            <div class="theme-picker-label">Asosiy rang</div>
+                            <div class="theme-swatches">
+                                <button class="swatch" style="background:#08543D" data-color="#08543D" title="Yashil" onclick="applyTheme('#08543D','#054d37','#e6f4ef','#f0f7f4','#c8ddd6')"></button>
+                                <button class="swatch" style="background:#1d4ed8" data-color="#1d4ed8" title="Ko'k" onclick="applyTheme('#1d4ed8','#1e40af','#eff6ff','#eff6ff','#bfdbfe')"></button>
+                                <button class="swatch" style="background:#7c3aed" data-color="#7c3aed" title="Binafsha" onclick="applyTheme('#7c3aed','#6d28d9','#f5f3ff','#f5f3ff','#ddd6fe')"></button>
+                                <button class="swatch" style="background:#b91c1c" data-color="#b91c1c" title="Qizil" onclick="applyTheme('#b91c1c','#991b1b','#fef2f2','#fef2f2','#fecaca')"></button>
+                                <button class="swatch" style="background:#b45309" data-color="#b45309" title="To'q sariq" onclick="applyTheme('#b45309','#92400e','#fffbeb','#fffbeb','#fde68a')"></button>
+                                <button class="swatch" style="background:#0e7490" data-color="#0e7490" title="Moviy" onclick="applyTheme('#0e7490','#155e75','#ecfeff','#ecfeff','#a5f3fc')"></button>
+                                <button class="swatch" style="background:#374151" data-color="#374151" title="Kulrang" onclick="applyTheme('#374151','#1f2937','#f9fafb','#f9fafb','#d1d5db')"></button>
+                                <button class="swatch" style="background:#be185d" data-color="#be185d" title="Pushti" onclick="applyTheme('#be185d','#9d174d','#fdf2f8','#fdf2f8','#fbcfe8')"></button>
+                            </div>
+                            <div style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+                                <label style="font-size:11px;color:#636e72;font-weight:600;">Maxsus:</label>
+                                <input type="color" id="customColorPicker" style="width:32px;height:28px;border:none;cursor:pointer;border-radius:4px;" onchange="applyCustomTheme(this.value)">
+                            </div>
+                        </div>
+                    </div>
                     <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
                     <div class="user-profile">
                         <div class="avatar"><i class="fa-solid fa-user"></i></div>
@@ -349,6 +395,72 @@
         </main>
     </div>
 
+    <script>
+        var _themePresets = {
+            '#08543D': ['#054d37','#e6f4ef','#f0f7f4','#c8ddd6'],
+            '#1d4ed8': ['#1e40af','#eff6ff','#eff6ff','#bfdbfe'],
+            '#7c3aed': ['#6d28d9','#f5f3ff','#f5f3ff','#ddd6fe'],
+            '#b91c1c': ['#991b1b','#fef2f2','#fef2f2','#fecaca'],
+            '#b45309': ['#92400e','#fffbeb','#fffbeb','#fde68a'],
+            '#0e7490': ['#155e75','#ecfeff','#ecfeff','#a5f3fc'],
+            '#374151': ['#1f2937','#f9fafb','#f9fafb','#d1d5db'],
+            '#be185d': ['#9d174d','#fdf2f8','#fdf2f8','#fbcfe8'],
+        };
+        function applyTheme(p, pd, pl, sb, b) {
+            var r = document.documentElement.style;
+            r.setProperty('--primary', p);
+            r.setProperty('--primary-dark', pd);
+            r.setProperty('--primary-light', pl);
+            r.setProperty('--sidebar-bg', sb);
+            r.setProperty('--border', b);
+            localStorage.setItem('erp_theme', JSON.stringify({p:p,pd:pd,pl:pl,sb:sb,b:b}));
+            document.querySelectorAll('.swatch').forEach(function(s){
+                s.classList.toggle('active', s.dataset.color === p);
+            });
+        }
+        function applyCustomTheme(p) {
+            var pd = shadeColor(p, -15);
+            var pl = shadeColor(p, 85);
+            applyTheme(p, pd, pl, pl, shadeColor(p, 65));
+        }
+        function shadeColor(hex, pct) {
+            var n = parseInt(hex.slice(1), 16);
+            var r = Math.min(255, Math.max(0, (n>>16) + Math.round(2.55*pct)));
+            var g = Math.min(255, Math.max(0, ((n>>8)&0xff) + Math.round(2.55*pct)));
+            var b = Math.min(255, Math.max(0, (n&0xff) + Math.round(2.55*pct)));
+            return '#' + [r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');
+        }
+        function toggleThemePicker() {
+            document.getElementById('themePickerDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.theme-picker-wrap')) {
+                var d = document.getElementById('themePickerDropdown');
+                if (d) d.classList.remove('open');
+            }
+        });
+        (function() {
+            var saved = localStorage.getItem('erp_theme');
+            if (saved) {
+                try {
+                    var t = JSON.parse(saved);
+                    var r = document.documentElement.style;
+                    r.setProperty('--primary', t.p);
+                    r.setProperty('--primary-dark', t.pd);
+                    r.setProperty('--primary-light', t.pl);
+                    r.setProperty('--sidebar-bg', t.sb);
+                    r.setProperty('--border', t.b);
+                    document.addEventListener('DOMContentLoaded', function(){
+                        document.querySelectorAll('.swatch').forEach(function(s){
+                            s.classList.toggle('active', s.dataset.color === t.p);
+                        });
+                        var cp = document.getElementById('customColorPicker');
+                        if (cp && !_themePresets[t.p]) cp.value = t.p;
+                    });
+                } catch(e) {}
+            }
+        })();
+    </script>
     <script src="{% static 'js/i18n.js' %}?v=3.1"></script>
     {% block extra_scripts %}{% endblock %}
     <script src="{% static 'js/main.js' %}?v=4"></script>

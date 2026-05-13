@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}Dars soatlari{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">
+        <i class="fa-solid fa-clock me-2"></i>Yangi dars soati qo'shish
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create">
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:13px;">Sinf darajasi</label>
+            <select name="level" class="form-select form-select-sm" required>
+              {% for code, label in levels %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:13px;">Soat raqami</label>
+            <input type="number" name="lesson_number" class="form-control form-control-sm" min="1" max="10" required placeholder="1">
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Boshlanish</label>
+              <input type="time" name="start_time" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Tugash</label>
+              <input type="time" name="end_time" class="form-control form-control-sm" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Yorliq (ixtiyoriy)</label>
+            <input type="text" name="label" class="form-control form-control-sm" placeholder="Masalan: 1-dars, Tanaffus">
+          </div>
+          <button class="btn btn-primary btn-sm w-100">Qo'shish</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <p class="fw-bold mb-2" style="font-size:13px;"><i class="fa-solid fa-info-circle text-info me-2"></i>Namuna jadval</p>
+        <table class="table table-sm mb-0" style="font-size:12px;">
+          <thead class="table-light"><tr><th>Soat</th><th>Boshlang'ich</th><th>O'rta/Yuqori</th></tr></thead>
+          <tbody>
+            <tr><td>1-soat</td><td>08:00–08:35</td><td>08:00–08:45</td></tr>
+            <tr><td>2-soat</td><td>08:45–09:20</td><td>09:00–09:45</td></tr>
+            <tr><td>3-soat</td><td>09:30–10:05</td><td>10:00–10:45</td></tr>
+            <tr><td>4-soat</td><td>10:15–10:50</td><td>11:00–11:45</td></tr>
+            <tr><td>5-soat</td><td>11:00–11:35</td><td>12:00–12:45</td></tr>
+            <tr><td>6-soat</td><td>—</td><td>13:30–14:15</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">Mavjud dars soatlari</div>
+      <div class="card-body p-0">
+        {% regroup periods by get_level_display as level_groups %}
+        {% for group in level_groups %}
+        <div class="px-3 pt-3">
+          <div class="fw-bold text-primary mb-2" style="font-size:13px;">{{ group.grouper }}</div>
+          <table class="table table-sm table-hover mb-3" style="font-size:13px;">
+            <thead class="table-light">
+              <tr><th>Soat</th><th>Boshlanish</th><th>Tugash</th><th>Yorliq</th><th>Amal</th></tr>
+            </thead>
+            <tbody>
+              {% for p in group.list %}
+              <tr>
+                <td class="fw-bold">{{ p.lesson_number }}-soat</td>
+                <td>{{ p.start_time|time:"H:i" }}</td>
+                <td>{{ p.end_time|time:"H:i" }}</td>
+                <td>{{ p.label|default:"—" }}</td>
+                <td>
+                  <a href="{% url 'students_lesson_period_edit' p.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
+                    <i class="fa-solid fa-pen"></i>
+                  </a>
+                  <form method="post" class="d-inline" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="pk" value="{{ p.pk }}">
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-4">Dars soatlari yo'q. Chap tomonda qo'shing.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

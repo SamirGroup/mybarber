@@ -18,7 +18,7 @@ from .models import (
     Subject, Schedule, Quarter, DailyGrade, QuarterGrade,
     Attendance, Homework, Contract, Payment, SmsNotificationConfig, SmsLog,
     ChatGroup, ChatMessage, HomeworkSubmission, StudentTransfer, StudentBalance,
-    OnlinePayment
+    OnlinePayment, LessonPeriod
 )
 from enrollment.models import Lead, Grade, AcademicYear
 from django.contrib.auth.models import User, Group
@@ -1759,3 +1759,272 @@ def payment_init(request, pk):
         'providers': OnlinePayment.PROVIDER_CHOICES,
     }
     return render(request, 'students/payment_init.html', context)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# SINF JURNALI VA DAVOMAT MODULI
+# ══════════════════════════════════════════════════════════════════════
+
+@login_required
+@students_required
+def classroom_journal(request, pk):
+    """Sinf jurnali — joriy dars, o'quvchilar ro'yxati, davomat"""
+    from datetime import datetime as dt
+    classroom = get_object_or_404(
+        Classroom.objects.select_related('grade', 'academic_year', 'homeroom_teacher'),
+        pk=pk
+    )
+    students = classroom.students.filter(is_active=True).order_by('last_name', 'first_name')
+    today = timezone.now().date()
+    now_time = timezone.now().time()
+    today_weekday = today.isoweekday()  # 1=Mon..6=Sat
+
+    # Bugungi dars jadvali
+    today_schedules = classroom.schedules.filter(
+        day_of_week=today_weekday
+    ).select_related('subject', 'teacher', 'period').order_by(
+        'period__lesson_number', 'start_time'
+    )
+
+    # Joriy dars — hozirgi vaqtga mos keluvchi
+    current_schedule = None
+    next_schedule = None
+    for sch in today_schedules:
+        s = sch.effective_start
+        e = sch.effective_end
+        if s and e:
+            if s <= now_time <= e:
+                current_schedule = sch
+                break
+            elif s > now_time and next_schedule is None:
+                next_schedule = sch
+
+    # Tanlangan dars (URL param yoki joriy)
+    selected_schedule_id = request.GET.get('schedule')
+    selected_schedule = None
+    if selected_schedule_id:
+        selected_schedule = today_schedules.filter(pk=selected_schedule_id).first()
+    if not selected_schedule:
+        selected_schedule = current_schedule or (today_schedules.first() if today_schedules.exists() else None)
+
+    # Mavjud davomat yozuvlari (bugun, tanlangan fan uchun)
+    existing_attendance = {}
+    if selected_schedule:
+        for a in Attendance.objects.filter(
+            student__classroom=classroom,
+            date=today,
+            subject=selected_schedule.subject
+        ):
+            existing_attendance[a.student_id] = a
+
+    # POST — davomat saqlash
+    if request.method == 'POST':
+        schedule_id = request.POST.get('schedule_id')
+        sch = get_object_or_404(Schedule, pk=schedule_id, classroom=classroom)
+        for student in students:
+            status = request.POST.get(f'status_{student.pk}', 'present')
+            note = request.POST.get(f'note_{student.pk}', '').strip()
+            Attendance.objects.update_or_create(
+                student=student,
+                date=today,
+                subject=sch.subject,
+                defaults={'status': status, 'marked_by': request.user, 'note': note}
+            )
+        messages.success(request, f'Davomat saqlandi: {sch.subject.name}')
+        return redirect(f"{request.path}?schedule={schedule_id}")
+
+    # Haftalik jadval (barcha kunlar)
+    week_schedule = {}
+    for day_num, day_name in Schedule.DAYS:
+        week_schedule[day_name] = classroom.schedules.filter(
+            day_of_week=day_num
+        ).select_related('subject', 'teacher', 'period').order_by(
+            'period__lesson_number', 'start_time'
+        )
+
+    # O'quvchilar uchun bugungi davomat statistikasi
+    today_stats = {
+        'present': Attendance.objects.filter(student__classroom=classroom, date=today, status='present').values('student').distinct().count(),
+        'absent': Attendance.objects.filter(student__classroom=classroom, date=today, status='absent').values('student').distinct().count(),
+        'late': Attendance.objects.filter(student__classroom=classroom, date=today, status='late').values('student').distinct().count(),
+    }
+
+    context = {
+        'classroom': classroom,
+        'students': students,
+        'today': today,
+        'today_schedules': today_schedules,
+        'current_schedule': current_schedule,
+        'next_schedule': next_schedule,
+        'selected_schedule': selected_schedule,
+        'existing_attendance': existing_attendance,
+        'week_schedule': week_schedule,
+        'today_stats': today_stats,
+        'page_title': f'Sinf jurnali: {classroom.name}',
+    }
+    return render(request, 'students/classroom_journal.html', context)
+
+
+@login_required
+@students_required
+def attendance_by_date(request, pk):
+    """Sinf uchun sana bo'yicha davomat ko'rish"""
+    classroom = get_object_or_404(Classroom, pk=pk)
+    date_str = request.GET.get('date', timezone.now().date().isoformat())
+    try:
+        from datetime import date as date_type
+        sel_date = date_type.fromisoformat(date_str)
+    except ValueError:
+        sel_date = timezone.now().date()
+
+    students = classroom.students.filter(is_active=True).order_by('last_name', 'first_name')
+    attendances = Attendance.objects.filter(
+        student__classroom=classroom, date=sel_date
+    ).select_related('student', 'subject')
+
+    att_map = {}
+    for a in attendances:
+        att_map.setdefault(a.student_id, []).append(a)
+
+    context = {
+        'classroom': classroom,
+        'students': students,
+        'sel_date': sel_date,
+        'att_map': att_map,
+        'page_title': f'Davomat: {classroom.name} — {sel_date}',
+    }
+    return render(request, 'students/attendance_by_date.html', context)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# DARS JADVALI CRUD
+# ══════════════════════════════════════════════════════════════════════
+
+@login_required
+@students_required
+def schedule_edit(request, pk):
+    schedule = get_object_or_404(Schedule, pk=pk)
+    if request.method == 'POST':
+        schedule.subject_id = request.POST.get('subject')
+        schedule.teacher_id = request.POST.get('teacher') or None
+        schedule.day_of_week = request.POST.get('day_of_week')
+        schedule.period_id = request.POST.get('period') or None
+        schedule.start_time = request.POST.get('start_time') or None
+        schedule.end_time = request.POST.get('end_time') or None
+        schedule.room = request.POST.get('room', '').strip()
+        schedule.save()
+        messages.success(request, 'Dars jadvali yangilandi')
+        return redirect('students_classroom_journal', pk=schedule.classroom.pk)
+
+    subjects = Subject.objects.all()
+    teachers = User.objects.filter(
+        groups__name__in=['students_agent', 'students_manager', 'enrollment_agent', 'enrollment_manager']
+    ).distinct()
+    periods = LessonPeriod.objects.all()
+    context = {
+        'schedule': schedule,
+        'subjects': subjects,
+        'teachers': teachers,
+        'periods': periods,
+        'days': Schedule.DAYS,
+        'page_title': 'Dars jadvalini tahrirlash',
+    }
+    return render(request, 'students/schedule_form_full.html', context)
+
+
+@login_required
+@students_required
+def schedule_delete(request, pk):
+    schedule = get_object_or_404(Schedule, pk=pk)
+    classroom_pk = schedule.classroom.pk
+    schedule.delete()
+    messages.success(request, "Dars o'chirildi")
+    return redirect('students_classroom_journal', pk=classroom_pk)
+
+
+@login_required
+@students_required
+def schedule_create_for_classroom(request, classroom_pk):
+    classroom = get_object_or_404(Classroom, pk=classroom_pk)
+    if request.method == 'POST':
+        Schedule.objects.create(
+            classroom=classroom,
+            subject_id=request.POST.get('subject'),
+            teacher_id=request.POST.get('teacher') or None,
+            day_of_week=request.POST.get('day_of_week'),
+            period_id=request.POST.get('period') or None,
+            start_time=request.POST.get('start_time') or None,
+            end_time=request.POST.get('end_time') or None,
+            room=request.POST.get('room', '').strip(),
+        )
+        messages.success(request, 'Dars qo\'shildi')
+        return redirect('students_classroom_journal', pk=classroom_pk)
+
+    subjects = Subject.objects.all()
+    teachers = User.objects.filter(
+        groups__name__in=['students_agent', 'students_manager', 'enrollment_agent', 'enrollment_manager']
+    ).distinct()
+    periods = LessonPeriod.objects.all()
+    context = {
+        'classroom': classroom,
+        'subjects': subjects,
+        'teachers': teachers,
+        'periods': periods,
+        'days': Schedule.DAYS,
+        'page_title': f'{classroom.name} — Yangi dars qo\'shish',
+    }
+    return render(request, 'students/schedule_form_full.html', context)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# DARS SOATLARI (LessonPeriod) CRUD
+# ══════════════════════════════════════════════════════════════════════
+
+@login_required
+@students_required
+def lesson_period_list(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create':
+            LessonPeriod.objects.create(
+                level=request.POST.get('level'),
+                lesson_number=request.POST.get('lesson_number'),
+                start_time=request.POST.get('start_time'),
+                end_time=request.POST.get('end_time'),
+                label=request.POST.get('label', '').strip(),
+            )
+            messages.success(request, 'Dars soati qo\'shildi')
+        elif action == 'delete':
+            LessonPeriod.objects.filter(pk=request.POST.get('pk')).delete()
+            messages.success(request, 'O\'chirildi')
+        return redirect('students_lesson_periods')
+
+    periods = LessonPeriod.objects.all()
+    context = {
+        'periods': periods,
+        'levels': LessonPeriod.LEVEL_CHOICES,
+        'page_title': 'Dars soatlari',
+    }
+    return render(request, 'students/lesson_period_list.html', context)
+
+
+@login_required
+@students_required
+def lesson_period_edit(request, pk):
+    period = get_object_or_404(LessonPeriod, pk=pk)
+    if request.method == 'POST':
+        period.level = request.POST.get('level')
+        period.lesson_number = request.POST.get('lesson_number')
+        period.start_time = request.POST.get('start_time')
+        period.end_time = request.POST.get('end_time')
+        period.label = request.POST.get('label', '').strip()
+        period.save()
+        messages.success(request, 'Dars soati yangilandi')
+        return redirect('students_lesson_periods')
+
+    context = {
+        'period': period,
+        'levels': LessonPeriod.LEVEL_CHOICES,
+        'page_title': 'Dars soatini tahrirlash',
+    }
+    return render(request, 'students/lesson_period_edit.html', context)

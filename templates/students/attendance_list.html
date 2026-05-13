@@ -1,96 +1,165 @@
 {% extends 'base.html' %}
-{% block breadcrumb %}Davomat ro'yxati{% endblock %}
+{% block breadcrumb %}Davomat{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; gap: 12px;
+  }
+  .page-header h5 { font-size: 20px; font-weight: 700; color: #08543D; margin: 0; display: flex; align-items: center; gap: 8px; }
+
+  .classroom-list { display: flex; flex-direction: column; gap: 10px; }
+  .classroom-row {
+    display: flex; align-items: center; gap: 16px;
+    background: #fff; border: 1px solid #c8ddd6;
+    border-radius: 14px; padding: 14px 18px;
+    cursor: pointer;
+    transition: box-shadow .18s, border-color .18s, background .15s;
+    text-decoration: none; color: inherit;
+  }
+  .classroom-row:hover {
+    box-shadow: 0 4px 18px rgba(8,84,61,.12);
+    border-color: #08543D;
+    background: #f4faf7;
+    text-decoration: none; color: inherit;
+  }
+  .cls-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: #e6f4ef; color: #08543D;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .cls-name { font-size: 17px; font-weight: 700; color: #08543D; line-height: 1.1; }
+  .cls-meta { font-size: 12px; color: #3d6b57; margin-top: 2px; }
+  .cls-teacher { font-size: 12px; color: #636e72; display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+  .cls-count {
+    background: #e6f4ef; color: #08543D;
+    border-radius: 20px; padding: 4px 14px;
+    font-size: 13px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+  }
+  .cls-arrow {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: #e6f4ef; color: #08543D;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+    transition: background .15s;
+  }
+  .classroom-row:hover .cls-arrow { background: #08543D; color: #fff; }
+
+  .att-stats {
+    display: flex; gap: 8px; flex-shrink: 0;
+  }
+  .att-stat {
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 44px; padding: 4px 8px; border-radius: 8px;
+    font-size: 11px; font-weight: 700;
+  }
+  .att-stat .num { font-size: 16px; font-weight: 800; line-height: 1.1; }
+  .att-stat.present { background: #dcfce7; color: #15803d; }
+  .att-stat.absent  { background: #fee2e2; color: #b91c1c; }
+  .att-stat.late    { background: #fef9c3; color: #854d0e; }
+
+  .filter-bar {
+    background: #fff; border: 1px solid #c8ddd6; border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .filter-bar select, .filter-bar input[type=date] {
+    border: 1.5px solid #c8ddd6; border-radius: 8px;
+    padding: 7px 10px; font-size: 13px; color: #08543D; outline: none;
+  }
+  .filter-bar select:focus, .filter-bar input:focus { border-color: #08543D; }
+  .filter-bar button {
+    background: #08543D; color: #fff; border: none;
+    border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .filter-bar button:hover { background: #054d37; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: #3d6b57; }
+  .empty-state i { font-size: 48px; opacity: .25; display: block; margin-bottom: 12px; color: #08543D; }
+
+  .today-badge {
+    background: #08543D; color: #fff;
+    border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700;
+    margin-left: 6px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card shadow-sm mb-3">
-  <div class="card-body py-2">
-    <form method="get" class="row g-2 align-items-end">
-      <div class="col-md-2">
-        <select name="classroom" class="form-select form-select-sm">
-          <option value="">Barcha sinflar</option>
-          {% for c in classrooms %}<option value="{{ c.pk }}" {% if classroom_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2">
-        <select name="student" class="form-select form-select-sm">
-          <option value="">Barcha o'quvchilar</option>
-          {% for s in students %}<option value="{{ s.pk }}" {% if student_filter == s.pk|stringformat:"s" %}selected{% endif %}>{{ s }}</option>{% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2">
-        <select name="status" class="form-select form-select-sm">
-          <option value="">Barcha holatlar</option>
-          {% for code, label in status_choices %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2"><input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}"></div>
-      <div class="col-md-2"><input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}"></div>
-      <div class="col-md-1"><button class="btn btn-primary btn-sm w-100"><i class="fa-solid fa-search"></i></button></div>
-      <div class="col-md-1">
-        <a href="{% url 'students_attendance_export' %}?{{ request.GET.urlencode }}" class="btn btn-success btn-sm w-100" title="Excel export">
-          <i class="fa-solid fa-file-excel"></i>
-        </a>
-      </div>
-    </form>
+<div class="page-header">
+  <h5><i class="fa-solid fa-clipboard-check"></i> Davomat</h5>
+  <div style="font-size:13px; color:#3d6b57; font-weight:600;">
+    <i class="fa-solid fa-calendar-day" style="margin-right:5px;"></i>
+    Sinf ustiga bosib davomad belgilang
   </div>
 </div>
 
-<div class="card shadow-sm">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <span class="fw-bold">Davomat — {{ page_obj.paginator.count }} ta yozuv</span>
-    <a href="{% url 'students_attendance' %}" class="btn btn-primary btn-sm">
-      <i class="fa-solid fa-plus me-1"></i>Yangi davomat
-    </a>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0" style="font-size:13px;">
-        <thead class="table-light">
-          <tr>
-            <th>#</th><th>O'quvchi</th><th>Sana</th><th>Fan</th>
-            <th>Holat</th><th>Izoh</th><th>Belgilagan</th><th>Amal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in page_obj %}
-          <tr>
-            <td class="text-muted">{{ forloop.counter }}</td>
-            <td><a href="{% url 'students_detail' a.student.pk %}">{{ a.student }}</a></td>
-            <td>{{ a.date }}</td>
-            <td>{{ a.subject|default:"—" }}</td>
-            <td>
-              {% if a.status == 'present' %}<span class="badge bg-success">Keldi</span>
-              {% elif a.status == 'absent' %}<span class="badge bg-danger">Kelmadi</span>
-              {% elif a.status == 'late' %}<span class="badge bg-warning text-dark">Kech keldi</span>
-              {% else %}<span class="badge bg-secondary">Uzrli</span>{% endif %}
-            </td>
-            <td>{{ a.note|default:"—" }}</td>
-            <td>{{ a.marked_by.username|default:"—" }}</td>
-            <td>
-              <a href="{% url 'students_attendance_edit' a.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
-                <i class="fa-solid fa-pen"></i>
-              </a>
-              <a href="{% url 'students_attendance_delete' a.pk %}"
-                 class="btn btn-sm btn-outline-danger py-0 px-2"
-                 onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
-                <i class="fa-solid fa-trash"></i>
-              </a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8" class="text-center text-muted py-4">Davomat topilmadi</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<!-- Filter -->
+<div class="filter-bar">
+  <form method="get" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;">
+    <i class="fa-solid fa-filter" style="color:#08543D;font-size:14px;flex-shrink:0;"></i>
+    <select name="year">
+      <option value="">Barcha o'quv yillari</option>
+      {% for y in academic_years %}
+      <option value="{{ y.pk }}" {% if request.GET.year == y.pk|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Filtr</button>
+  </form>
+</div>
+
+<!-- Sinflar ro'yxati -->
+<div class="classroom-list">
+  {% for classroom in classrooms %}
+  <a href="{% url 'students_classroom_journal' classroom.pk %}" class="classroom-row">
+    <div class="cls-icon"><i class="fa-solid fa-chalkboard"></i></div>
+    <div style="flex:1; min-width:0;">
+      <div class="cls-name">
+        {{ classroom.name }}
+        {% if classroom.today_present is not None %}
+        <span class="today-badge">Bugun</span>
+        {% endif %}
+      </div>
+      <div class="cls-meta">{{ classroom.grade.name }} &nbsp;·&nbsp; {{ classroom.academic_year.name }}</div>
+      <div class="cls-teacher">
+        <i class="fa-solid fa-user-tie"></i>
+        {% if classroom.homeroom_teacher %}
+          {{ classroom.homeroom_teacher.get_full_name|default:classroom.homeroom_teacher.username }}
+        {% else %}
+          Sinf rahbari yo'q
+        {% endif %}
+      </div>
     </div>
+
+    <!-- Bugungi davomat statistikasi -->
+    <div class="att-stats">
+      <div class="att-stat present">
+        <span class="num">{{ classroom.today_present|default:"—" }}</span>
+        <span>Keldi</span>
+      </div>
+      <div class="att-stat absent">
+        <span class="num">{{ classroom.today_absent|default:"—" }}</span>
+        <span>Kelmadi</span>
+      </div>
+      <div class="att-stat late">
+        <span class="num">{{ classroom.today_late|default:"—" }}</span>
+        <span>Kech</span>
+      </div>
+    </div>
+
+    <span class="cls-count">
+      <i class="fa-solid fa-users" style="font-size:11px;margin-right:4px;"></i>
+      {{ classroom.students.count }}/{{ classroom.capacity }}
+    </span>
+    <div class="cls-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+  </a>
+  {% empty %}
+  <div class="empty-state">
+    <i class="fa-solid fa-school"></i>
+    Sinflar yo'q. <a href="{% url 'students_classroom_create' %}" style="color:#08543D;font-weight:600;">Yangi sinf yarating</a>
   </div>
-  {% if page_obj.has_other_pages %}
-  <div class="card-footer">
-    <nav><ul class="pagination pagination-sm justify-content-center mb-0">
-      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">‹</a></li>{% endif %}
-      <li class="page-item active"><a class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</a></li>
-      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">›</a></li>{% endif %}
-    </ul></nav>
-  </div>
-  {% endif %}
+  {% endfor %}
 </div>
 {% endblock %}

@@ -8,6 +8,9 @@ urlpatterns = [
     path('classrooms/', views.classroom_list, name='students_classroom_list'),
     path('classrooms/new/', views.classroom_create, name='students_classroom_create'),
     path('classrooms/<int:pk>/', views.classroom_detail, name='students_classroom_detail'),
+    path('classrooms/<int:pk>/journal/', views.classroom_journal, name='students_classroom_journal'),
+    path('classrooms/<int:pk>/attendance/', views.attendance_by_date, name='students_classroom_attendance'),
+    path('classrooms/<int:classroom_pk>/schedule/new/', views.schedule_create_for_classroom, name='students_schedule_create_for'),
 
     # Students
     path('list/', views.student_list, name='students_list'),
@@ -63,9 +66,15 @@ urlpatterns = [
     path('chat/<int:pk>/', views.chat_detail, name='students_chat_detail'),
     path('chat/<int:pk>/send/', views.chat_send, name='students_chat_send'),
 
-    # Schedule
+    # Schedule CRUD
     path('schedule/', views.schedule_list, name='students_schedule'),
     path('schedule/new/', views.schedule_create, name='students_schedule_create'),
+    path('schedule/<int:pk>/edit/', views.schedule_edit, name='students_schedule_edit'),
+    path('schedule/<int:pk>/delete/', views.schedule_delete, name='students_schedule_delete'),
+
+    # Lesson Periods
+    path('lesson-periods/', views.lesson_period_list, name='students_lesson_periods'),
+    path('lesson-periods/<int:pk>/edit/', views.lesson_period_edit, name='students_lesson_period_edit'),
 
     # Subjects
     path('subjects/', views.subject_list, name='students_subjects'),

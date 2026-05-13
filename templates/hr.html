@@ -13,23 +13,23 @@
        DESIGN SYSTEM - Matches Dashboard.html exactly
        ───────────────────────────────────────────────────────── */
     .content-wrapper {
-        --paper: #fffdf7;
-        --ink: #2f2a25;
-        --muted-ink: #746a60;
-        --warm-1: #f2dcc2;
-        --warm-2: #d4a373;
-        --warm-3: #b8860b;
-        --olive-1: #d7debc;
-        --olive-2: #a6b07f;
-        --line-soft: rgba(111, 89, 65, 0.2);
+        --paper: #f4faf7;
+        --ink: #0d2b20;
+        --muted-ink: #3d6b57;
+        --warm-1: #c8ddd6;
+        --warm-2: #08543D;
+        --warm-3: #054d37;
+        --olive-1: #b8d4c8;
+        --olive-2: #0a6b4f;
+        --line-soft: rgba(8, 84, 61, 0.15);
         --danger-soft: rgba(231, 76, 60, 0.1);
         --success-soft: rgba(46, 204, 113, 0.1);
         
         font-family: 'Manrope', sans-serif;
         background: 
-            radial-gradient(1100px 460px at -2% -5%, rgba(212, 163, 115, 0.22), transparent),
-            radial-gradient(900px 420px at 101% 12%, rgba(167, 176, 127, 0.2), transparent),
-            linear-gradient(180deg, #fffdf7 0%, #f7f6f1 62%, #f2f3ee 100%) !important;
+            radial-gradient(1100px 460px at -2% -5%, rgba(8, 84, 61, 0.12), transparent),
+            radial-gradient(900px 420px at 101% 12%, rgba(10, 107, 79, 0.10), transparent),
+            linear-gradient(180deg, #f4faf7 0%, #eef6f2 62%, #e8f2ed 100%) !important;
         min-height: calc(100vh - 70px);
         padding: 24px !important;
     }
@@ -61,8 +61,8 @@
         grid-column: span 12;
         padding: 28px 32px;
         background: 
-            linear-gradient(118deg, rgba(255, 252, 245, 0.97), rgba(250, 245, 236, 0.97)),
-            repeating-linear-gradient(45deg, rgba(212, 163, 115, 0.08) 0 2px, transparent 2px 12px);
+            linear-gradient(118deg, rgba(240, 250, 245, 0.97), rgba(230, 244, 239, 0.97)),
+            repeating-linear-gradient(45deg, rgba(8, 84, 61, 0.06) 0 2px, transparent 2px 12px);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -74,8 +74,8 @@
     .hero:before, .hero:after {
         content: ""; position: absolute; border-radius: 999px; pointer-events: none;
     }
-    .hero:before { width: 180px; height: 180px; right: -40px; top: -40px; background: radial-gradient(circle, rgba(212, 163, 115, 0.22), transparent 65%); }
-    .hero:after { width: 140px; height: 140px; right: 120px; bottom: -70px; background: radial-gradient(circle, rgba(166, 176, 127, 0.2), transparent 68%); }
+    .hero:before { width: 180px; height: 180px; right: -40px; top: -40px; background: radial-gradient(circle, rgba(8, 84, 61, 0.18), transparent 65%); }
+    .hero:after { width: 140px; height: 140px; right: 120px; bottom: -70px; background: radial-gradient(circle, rgba(10, 107, 79, 0.14), transparent 68%); }
 
     .hero-title {
         font-family: 'Lexend', sans-serif;
@@ -115,7 +115,7 @@
         display: flex; align-items: center; gap: 10px;
     }
     .tab-link:hover { border-color: var(--warm-2); color: var(--warm-2); transform: translateY(-1px); }
-    .tab-link.active { background: var(--warm-2); color: white; border-color: var(--warm-2); box-shadow: 0 4px 12px rgba(212,163,115,0.25); }
+    .tab-link.active { background: var(--warm-2); color: white; border-color: var(--warm-2); box-shadow: 0 4px 12px rgba(8,84,61,0.22); }
 
     /* ─────────────────────────────────────────────────────────
        HR SPECIFIC LIST & FORMS
@@ -148,15 +148,15 @@
         background: #fdfcf9; font-family: 'Manrope', sans-serif; font-weight: 600; color: var(--ink);
         transition: all 0.2s;
     }
-    .premium-form .form-control:focus { border-color: var(--warm-2); outline: none; box-shadow: 0 0 0 4px rgba(212,163,115,0.12); background: white; }
+    .premium-form .form-control:focus { border-color: var(--warm-2); outline: none; box-shadow: 0 0 0 4px rgba(8,84,61,0.10); background: white; }
 
     .submit-btn {
         width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 800; font-family: 'Lexend', sans-serif;
-        background: linear-gradient(135deg, var(--warm-2), var(--warm-3)); color: white;
-        cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(184,134,11,0.2);
+        background: linear-gradient(135deg, #08543D, #054d37); color: white;
+        cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(8,84,61,0.18);
         display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px;
     }
-    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(184,134,11,0.3); filter: brightness(1.1); }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(8,84,61,0.28); filter: brightness(1.1); }
 </style>
 {% endblock %}
 

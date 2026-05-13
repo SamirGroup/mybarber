@@ -185,8 +185,8 @@ new Chart(document.getElementById('leadFlowChart'), {
     datasets: [{
       label: 'Leadlar',
       data: chartData,
-      borderColor: '#1a73e8',
-      backgroundColor: 'rgba(26,115,232,0.08)',
+      borderColor: '#08543D',
+      backgroundColor: 'rgba(8,84,61,0.08)',
       fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 4,
     }]
   },
@@ -199,7 +199,7 @@ if (statusDist.length) {
     type: 'doughnut',
     data: {
       labels: statusDist.map(s => s.current_status__name || 'Noma\'lum'),
-      datasets: [{ data: statusDist.map(s => s.cnt), backgroundColor: ['#1a73e8','#34a853','#fbbc04','#ea4335','#9aa0a6','#00c6ff','#ff6d00','#7c4dff'], borderWidth: 2 }]
+      datasets: [{ data: statusDist.map(s => s.cnt), backgroundColor: ['#08543D','#0a6b4f','#0d8f69','#4dd9a8','#b8d4c8','#054d37','#c8ddd6','#3d6b57'], borderWidth: 2 }]
     },
     options: { responsive: true, cutout: '60%', plugins: { legend: { display: false } } }
   });

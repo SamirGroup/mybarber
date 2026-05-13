@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}Sinf jurnali: {{ classroom.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .lesson-card {
+    border-radius: 14px; padding: 14px 18px;
+    border: 2px solid #e2e8f0; background: #fff;
+    transition: border-color .15s;
+  }
+  .lesson-card.active { border-color: #1a73e8; background: #eff6ff; }
+  .lesson-card.next { border-color: #f59e0b; background: #fffbeb; }
+  .status-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 2px solid #e2e8f0;
+    cursor: pointer; font-size: 13px; font-weight: 700; transition: all .12s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .status-btn.present { background: #dcfce7; border-color: #16a34a; color: #15803d; }
+  .status-btn.absent  { background: #fee2e2; border-color: #dc2626; color: #b91c1c; }
+  .status-btn.late    { background: #fef9c3; border-color: #ca8a04; color: #92400e; }
+  .status-btn.excused { background: #f1f5f9; border-color: #64748b; color: #475569; }
+  .student-row:hover { background: #f8fafc; }
+  .day-tab { cursor: pointer; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #64748b; }
+  .day-tab.active { background: #1a73e8; color: #fff; }
+  .period-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 6px;
+    font-size: 11px; font-weight: 700; background: #e0e7ff; color: #3730a3;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="fw-bold mb-0">{{ classroom.name }}
+      <span class="badge bg-secondary ms-2" style="font-size:12px;">{{ classroom.grade }}</span>
+      <span class="badge bg-light text-dark ms-1" style="font-size:12px;">{{ classroom.academic_year }}</span>
+    </h5>
+    <div class="text-muted" style="font-size:13px;">
+      Sinf rahbari: {% if classroom.homeroom_teacher %}{{ classroom.homeroom_teacher.get_full_name|default:classroom.homeroom_teacher.username }}{% else %}—{% endif %} |
+      O'quvchilar: {{ students.count }} ta
+    </div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'students_schedule_create_for' classroom.pk %}" class="btn btn-primary btn-sm">
+      <i class="fa-solid fa-plus me-1"></i>Dars qo'shish
+    </a>
+    <a href="{% url 'students_classroom_attendance' classroom.pk %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fa-solid fa-calendar-days me-1"></i>Sana bo'yicha
+    </a>
+    <a href="{% url 'students_classroom_detail' classroom.pk %}" class="btn btn-outline-secondary btn-sm">
+      <i class="fa-solid fa-info-circle me-1"></i>Sinf ma'lumotlari
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- LEFT: Joriy dars + davomat -->
+  <div class="col-xl-8">
+
+    <!-- Bugungi darslar -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">
+          <i class="fa-solid fa-clock text-primary me-2"></i>
+          Bugungi darslar — {{ today|date:"l, d F Y" }}
+        </span>
+        <span class="badge bg-light text-dark" style="font-size:12px;">{{ today|date:"d-M-Y" }}</span>
+      </div>
+      <div class="card-body">
+        {% if today_schedules %}
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          {% for sch in today_schedules %}
+          <a href="?schedule={{ sch.pk }}"
+             class="lesson-card text-decoration-none {% if selected_schedule.pk == sch.pk %}active{% elif next_schedule.pk == sch.pk %}next{% endif %}"
+             style="min-width:160px;">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              {% if sch.period %}
+              <span class="period-badge">{{ sch.period.lesson_number }}-soat</span>
+              {% endif %}
+              {% if current_schedule.pk == sch.pk %}
+              <span class="badge bg-success" style="font-size:10px;">Hozir</span>
+              {% elif next_schedule.pk == sch.pk %}
+              <span class="badge bg-warning text-dark" style="font-size:10px;">Keyingi</span>
+              {% endif %}
+            </div>
+            <div class="fw-bold" style="font-size:13px;">{{ sch.subject.name }}</div>
+            <div class="text-muted" style="font-size:11px;">
+              {{ sch.effective_start|time:"H:i"|default:"—" }} – {{ sch.effective_end|time:"H:i"|default:"—" }}
+            </div>
+            <div class="text-muted" style="font-size:11px;">
+              {% if sch.teacher %}{{ sch.teacher.get_full_name|default:sch.teacher.username }}{% else %}—{% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-muted text-center py-3" style="font-size:13px;">
+          <i class="fa-solid fa-calendar-xmark me-2"></i>Bugun dars jadvali yo'q
+        </div>
+        {% endif %}
+
+        <!-- Davomat shakli -->
+        {% if selected_schedule %}
+        <div class="border-top pt-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0">
+              <i class="fa-solid fa-clipboard-check text-success me-2"></i>
+              Davomat: {{ selected_schedule.subject.name }}
+              {% if selected_schedule.period %}
+              <span class="period-badge ms-2">{{ selected_schedule.period.lesson_number }}-soat</span>
+              {% endif %}
+            </h6>
+            <div class="d-flex gap-3 text-center" style="font-size:12px;">
+              <span class="text-success fw-bold">✓ {{ today_stats.present }}</span>
+              <span class="text-danger fw-bold">✗ {{ today_stats.absent }}</span>
+              <span class="text-warning fw-bold">⏱ {{ today_stats.late }}</span>
+            </div>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="schedule_id" value="{{ selected_schedule.pk }}">
+
+            <!-- Tez belgilash -->
+            <div class="d-flex gap-2 mb-3">
+              <button type="button" class="btn btn-sm btn-outline-success" onclick="setAll('present')">
+                <i class="fa-solid fa-check me-1"></i>Barchasi keldi
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="setAll('absent')">
+                <i class="fa-solid fa-xmark me-1"></i>Barchasi kelmadi
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" style="font-size:13px;">
+                <thead class="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>O'quvchi</th>
+                    <th class="text-center">Keldi</th>
+                    <th class="text-center">Kelmadi</th>
+                    <th class="text-center">Kech</th>
+                    <th class="text-center">Uzrli</th>
+                    <th>Izoh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for student in students %}
+                  {% with att=existing_attendance|default_if_none:'' %}
+                  <tr class="student-row">
+                    <td class="text-muted">{{ forloop.counter }}</td>
+                    <td>
+                      <a href="{% url 'students_detail' student.pk %}" class="text-decoration-none fw-semibold">
+                        {{ student.full_name }}
+                      </a>
+                    </td>
+                    {% with cur_status=existing_attendance|default_if_none:'' %}
+                    <td class="text-center">
+                      <input type="radio" name="status_{{ student.pk }}" value="present"
+                        class="status-radio" data-student="{{ student.pk }}"
+                        {% if existing_attendance|default_if_none:'' %}
+                          {% for sid, a in existing_attendance.items %}{% if sid == student.pk %}{% if a.status == 'present' %}checked{% endif %}{% endif %}{% endfor %}
+                        {% else %}checked{% endif %}>
+                    </td>
+                    <td class="text-center">
+                      <input type="radio" name="status_{{ student.pk }}" value="absent"
+                        class="status-radio" data-student="{{ student.pk }}"
+                        {% for sid, a in existing_attendance.items %}{% if sid == student.pk %}{% if a.status == 'absent' %}checked{% endif %}{% endif %}{% endfor %}>
+                    </td>
+                    <td class="text-center">
+                      <input type="radio" name="status_{{ student.pk }}" value="late"
+                        class="status-radio" data-student="{{ student.pk }}"
+                        {% for sid, a in existing_attendance.items %}{% if sid == student.pk %}{% if a.status == 'late' %}checked{% endif %}{% endif %}{% endfor %}>
+                    </td>
+                    <td class="text-center">
+                      <input type="radio" name="status_{{ student.pk }}" value="excused"
+                        class="status-radio" data-student="{{ student.pk }}"
+                        {% for sid, a in existing_attendance.items %}{% if sid == student.pk %}{% if a.status == 'excused' %}checked{% endif %}{% endif %}{% endfor %}>
+                    </td>
+                    {% endwith %}
+                    <td>
+                      <input type="text" name="note_{{ student.pk }}" class="form-control form-control-sm"
+                        placeholder="Izoh..."
+                        value="{% for sid, a in existing_attendance.items %}{% if sid == student.pk %}{{ a.note }}{% endif %}{% endfor %}">
+                    </td>
+                  </tr>
+                  {% endwith %}
+                  {% empty %}
+                  <tr><td colspan="7" class="text-center text-muted py-3">O'quvchilar yo'q</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3">
+              <button type="submit" class="btn btn-success">
+                <i class="fa-solid fa-save me-1"></i>Davomatni saqlash
+              </button>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Haftalik jadval -->
+  <div class="col-xl-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold">
+        <i class="fa-solid fa-table me-2"></i>Haftalik dars jadvali
+      </div>
+      <div class="card-body p-2">
+        <!-- Kun tablar -->
+        <div class="d-flex flex-wrap gap-1 mb-2">
+          {% for day_name, schedules in week_schedule.items %}
+          <button class="day-tab {% if forloop.first %}active{% endif %}"
+                  onclick="showDay('{{ day_name }}', this)">{{ day_name }}</button>
+          {% endfor %}
+        </div>
+
+        {% for day_name, schedules in week_schedule.items %}
+        <div class="day-content" id="day-{{ day_name }}" style="{% if not forloop.first %}display:none{% endif %}">
+          {% if schedules %}
+          {% for sch in schedules %}
+          <div class="d-flex align-items-start gap-2 p-2 rounded mb-1" style="background:#f8fafc; font-size:12px;">
+            <div style="min-width:40px; text-align:center;">
+              {% if sch.period %}
+              <span class="period-badge">{{ sch.period.lesson_number }}</span>
+              {% else %}
+              <span class="text-muted">{{ sch.effective_start|time:"H:i"|default:"—" }}</span>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold">{{ sch.subject.name }}</div>
+              <div class="text-muted">{% if sch.teacher %}{{ sch.teacher.get_full_name|default:sch.teacher.username }}{% else %}—{% endif %}</div>
+              {% if sch.room %}<div class="text-muted">Xona: {{ sch.room }}</div>{% endif %}
+            </div>
+            <div class="d-flex gap-1">
+              <a href="{% url 'students_schedule_edit' sch.pk %}" class="btn btn-xs btn-outline-primary py-0 px-1" style="font-size:10px;">
+                <i class="fa-solid fa-pen"></i>
+              </a>
+              <a href="{% url 'students_schedule_delete' sch.pk %}"
+                 class="btn btn-xs btn-outline-danger py-0 px-1" style="font-size:10px;"
+                 onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                <i class="fa-solid fa-trash"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="text-muted text-center py-2" style="font-size:12px;">Dars yo'q</div>
+          {% endif %}
+          <a href="{% url 'students_schedule_create_for' classroom.pk %}" class="btn btn-outline-primary btn-sm w-100 mt-1" style="font-size:11px;">
+            <i class="fa-solid fa-plus me-1"></i>Dars qo'shish
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- O'quvchilar ro'yxati -->
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">
+        <i class="fa-solid fa-users me-2"></i>O'quvchilar ({{ students.count }})
+      </div>
+      <div class="card-body p-0">
+        <div style="max-height:320px; overflow-y:auto;">
+          {% for student in students %}
+          <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom" style="font-size:13px;">
+            <span class="text-muted" style="min-width:22px;">{{ forloop.counter }}</span>
+            <div class="flex-grow-1">
+              <a href="{% url 'students_detail' student.pk %}" class="text-decoration-none fw-semibold">
+                {{ student.full_name }}
+              </a>
+            </div>
+            <span class="badge {% if student.is_active %}bg-success{% else %}bg-secondary{% endif %}" style="font-size:10px;">
+              {% if student.is_active %}Faol{% else %}Nofaol{% endif %}
+            </span>
+          </div>
+          {% empty %}
+          <div class="text-center text-muted py-3" style="font-size:13px;">O'quvchilar yo'q</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function showDay(dayName, btn) {
+  document.querySelectorAll('.day-content').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('day-' + dayName).style.display = 'block';
+  btn.classList.add('active');
+}
+
+function setAll(status) {
+  document.querySelectorAll('.status-radio[value="' + status + '"]').forEach(r => r.checked = true);
+}
+</script>
+{% endblock %}
