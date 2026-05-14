@@ -1,0 +1,19 @@
+{% extends 'students/base_students.html' %}
+{% block title %}To'lov bekor qilindi{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="card shadow-sm mx-auto" style="max-width:480px">
+        <div class="card-body py-5">
+            <i class="fa-solid fa-circle-xmark fa-4x text-danger mb-3"></i>
+            <h3 class="text-danger">To'lov bekor qilindi</h3>
+            <p class="text-muted mt-2">To'lov amalga oshirilmadi yoki bekor qilindi.</p>
+            {% if order_id %}
+            <p class="text-muted">Buyurtma: <strong>{{ order_id }}</strong></p>
+            {% endif %}
+            <a href="{% url 'students_dashboard' %}" class="btn btn-secondary mt-3">
+                <i class="fa-solid fa-home me-1"></i>Bosh sahifaga
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

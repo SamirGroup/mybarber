@@ -1,8 +1,8 @@
 from django.contrib import admin
 
 from .models import (
-    Account, CashRegister, ExpenseCategory, JournalEntry, JournalLine, 
-    Supplier, Transaction
+    Account, CashRegister, ExpenseCategory, JournalEntry, JournalLine,
+    Supplier, Transaction, PaymentGateway
 )
 
 
@@ -39,3 +39,11 @@ class TransactionAdmin(admin.ModelAdmin):
 
 admin.site.register(ExpenseCategory)
 admin.site.register(Supplier)
+
+
+@admin.register(PaymentGateway)
+class PaymentGatewayAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'merchant_id', 'is_active', 'is_test', 'commission_percent')
+    list_filter = ('is_active', 'is_test', 'provider')
+    list_editable = ('is_active', 'is_test')
+    search_fields = ('provider', 'merchant_id')

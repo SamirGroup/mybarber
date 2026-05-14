@@ -1,0 +1,25 @@
+{% extends 'students/base_students.html' %}
+{% block title %}To'lov muvaffaqiyatli{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="card shadow-sm mx-auto" style="max-width:480px">
+        <div class="card-body py-5">
+            <i class="fa-solid fa-circle-check fa-4x text-success mb-3"></i>
+            <h3 class="text-success">To'lov muvaffaqiyatli amalga oshirildi!</h3>
+            {% if op %}
+            <table class="table table-sm mt-4 text-start">
+                <tr><th>O'quvchi</th><td>{{ op.student.full_name }}</td></tr>
+                <tr><th>Shartnoma</th><td>{{ op.contract.contract_number|default:"—" }}</td></tr>
+                <tr><th>Summa</th><td class="text-success fw-bold">{{ op.amount|floatformat:0 }} so'm</td></tr>
+                <tr><th>To'lov tizimi</th><td>{{ op.get_provider_display }}</td></tr>
+                <tr><th>Tranzaksiya ID</th><td><small>{{ op.transaction_id }}</small></td></tr>
+                <tr><th>Sana</th><td>{{ op.confirmed_at|date:"d.m.Y H:i"|default:"—" }}</td></tr>
+            </table>
+            {% endif %}
+            <a href="{% url 'students_dashboard' %}" class="btn btn-primary mt-3">
+                <i class="fa-solid fa-home me-1"></i>Bosh sahifaga
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

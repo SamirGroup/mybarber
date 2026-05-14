@@ -23,8 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-demo-only-change-in-production-#8dh8hxh')
 
-#DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydа False qiling
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydа False qiling
+# DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
@@ -723,6 +723,9 @@ TWILIO_REGION = os.getenv('TWILIO_REGION', '')
 TWILIO_TIMEOUT = int(os.getenv('TWILIO_TIMEOUT', '10'))
 TWILIO_VALIDATE_REQUEST = os.getenv('TWILIO_VALIDATE_REQUEST', 'False') == 'True'
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+
+# Site URL (to'lov tizimlari callback uchun)
+SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 
 # Default application identity
 APP_BRAND_NAME = os.getenv('APP_BRAND_NAME', 'Bunyod Non Sharjah School')

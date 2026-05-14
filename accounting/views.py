@@ -3,7 +3,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -48,11 +48,11 @@ def students_payments_report(request):
     if payment_method:
         payments_qs = payments_qs.filter(method=payment_method)
     
-    payments = payments_qs[:500]  # Limit
+    payments = list(payments_qs[:500])  # Limit
     
     # Online to'lovlar (faqat tasdiqlanganlar)
     online_payments_qs = OnlinePayment.objects.select_related(
-        'provider', 'student', 'contract'
+        'student', 'contract'
     ).filter(status='paid').order_by('-created_at')
     
     if student_id:
@@ -60,11 +60,11 @@ def students_payments_report(request):
     if contract_number:
         online_payments_qs = online_payments_qs.filter(contract__contract_number__icontains=contract_number)
     if date_from:
-        online_payments_qs = online_payments_qs.filter(created_at__gte=date_from)
+        online_payments_qs = online_payments_qs.filter(created_at__date__gte=date_from)
     if date_to:
-        online_payments_qs = online_payments_qs.filter(created_at__lte=date_to)
+        online_payments_qs = online_payments_qs.filter(created_at__date__lte=date_to)
     
-    online_payments = online_payments_qs[:500]
+    online_payments = list(online_payments_qs[:500])
     
     # Barcha to'lovlar (Naqd + Online) bitta ro'yxatda
     all_payments = []
@@ -106,8 +106,8 @@ def students_payments_report(request):
     all_payments = all_payments[:300]  # Limit
     
     # Jami summa
-    total_cash = payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    total_online = online_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    total_cash = payments_qs[:500].aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    total_online = online_payments_qs[:500].aggregate(total=Sum('amount'))['total'] or Decimal('0')
     total_all_payments = total_cash + total_online
     
     # O'quvchilar bo'yicha guruhlangan
@@ -118,10 +118,10 @@ def students_payments_report(request):
         
         if date_from:
             student_payments = student_payments.filter(payment_date__gte=date_from)
-            student_online = student_online.filter(created_at__gte=date_from)
+            student_online = student_online.filter(created_at__date__gte=date_from)
         if date_to:
             student_payments = student_payments.filter(payment_date__lte=date_to)
-            student_online = student_online.filter(created_at__lte=date_to)
+            student_online = student_online.filter(created_at__date__lte=date_to)
         
         total_paid = student_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
         total_online_paid = student_online.aggregate(total=Sum('amount'))['total'] or Decimal('0')
@@ -149,14 +149,14 @@ def students_payments_report(request):
     # Naqd to'lov usullari
     methods = Payment.PAYMENT_METHOD
     for method_code, method_name in methods:
-        method_payments = payments.filter(method=method_code)
-        method_total = method_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        agg = payments_qs.filter(method=method_code).aggregate(total=Sum('amount'), cnt=Count('id'))
+        method_total = agg['total'] or Decimal('0')
         if method_total > 0:
             method_summary.append({
                 'code': method_code,
                 'name': method_name,
                 'total': method_total,
-                'count': method_payments.count(),
+                'count': agg['cnt'] or 0,
                 'type': 'cash',
             })
     

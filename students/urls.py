@@ -51,6 +51,16 @@ urlpatterns = [
 
     # Payment Gateway Webhooks
     path('webhook/payme/', views.payme_webhook, name='students_payme_webhook'),
+    path('webhook/click/', views.click_webhook, name='students_click_webhook'),
+    path('webhook/uzum/', views.uzum_webhook, name='students_uzum_webhook'),
+    path('webhook/apelsin/', views.apls_webhook, name='students_apelsin_webhook'),
+    path('webhook/cap/', views.cap_webhook, name='students_cap_webhook'),
+    path('webhook/humo/', views.humo_webhook, name='students_humo_webhook'),
+    path('webhook/alif/', views.alif_webhook, name='students_alif_webhook'),
+    path('webhook/anorbank/', views.anorbank_webhook, name='students_anorbank_webhook'),
+    path('webhook/multicard/', views.multicard_webhook, name='students_multicard_webhook'),
+    path('payment/complete/', views.payment_complete, name='students_payment_complete'),
+    path('payment/cancel/', views.payment_cancel, name='students_payment_cancel'),
 
     # SMS
     path('sms/config/', views.sms_config, name='students_sms_config'),

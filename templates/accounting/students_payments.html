@@ -42,9 +42,18 @@
                     <label class="form-label">To'lov usuli</label>
                     <select name="method" class="form-select">
                         <option value="">Barchasi</option>
-                        {% for code, name in payment.PAYMENT_METHOD %}
-                        <option value="{{ code }}" {% if selected_method == code %}selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
+                        <option value="cash" {% if selected_method == 'cash' %}selected{% endif %}>Naqd</option>
+                        <option value="card" {% if selected_method == 'card' %}selected{% endif %}>Karta</option>
+                        <option value="transfer" {% if selected_method == 'transfer' %}selected{% endif %}>O'tkazma</option>
+                        <option value="payme" {% if selected_method == 'payme' %}selected{% endif %}>Payme</option>
+                        <option value="click" {% if selected_method == 'click' %}selected{% endif %}>Click</option>
+                        <option value="uzum" {% if selected_method == 'uzum' %}selected{% endif %}>Uzum Bank</option>
+                        <option value="apelsin" {% if selected_method == 'apelsin' %}selected{% endif %}>Apelsin</option>
+                        <option value="humo" {% if selected_method == 'humo' %}selected{% endif %}>Humo</option>
+                        <option value="uzcard" {% if selected_method == 'uzcard' %}selected{% endif %}>UzCard</option>
+                        <option value="multicard" {% if selected_method == 'multicard' %}selected{% endif %}>Multicard</option>
+                        <option value="anorbank" {% if selected_method == 'anorbank' %}selected{% endif %}>Anorbank</option>
+                        <option value="alif" {% if selected_method == 'alif' %}selected{% endif %}>Alif Mobi</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -77,10 +86,12 @@
                             <th>#</th>
                             <th>O'quvchi</th>
                             <th>Shartnomalar</th>
+                            <th>Naqd to'lov</th>
+                            <th>Online to'lov</th>
                             <th>Jami to'lov</th>
                             <th>Kerakli summa</th>
                             <th>Qarzdorlik</th>
-                            <th>To'lovlar</th>
+                            <th>To'lovlar soni</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,16 +105,22 @@
                                 {% endif %}
                             </td>
                             <td>{{ item.contract_count }}</td>
+                            <td>{{ item.total_cash|floatformat:0 }} so'm</td>
+                            <td>
+                                {% if item.total_online > 0 %}
+                                <span class="text-primary fw-bold">{{ item.total_online|floatformat:0 }} so'm</span>
+                                {% else %}—{% endif %}
+                            </td>
                             <td class="text-success fw-bold">{{ item.total_paid|floatformat:0 }} so'm</td>
                             <td>{{ item.total_fee|floatformat:0 }} so'm</td>
                             <td class="{% if item.debt > 0 %}text-danger fw-bold{% endif %}">
-                                {% if item.debt > 0 %}{{ item.debt|floatformat:0 }} so'm{% else %}—{% endif %}
+                                {% if item.debt > 0 %}{{ item.debt|floatformat:0 }} so'm{% else %}<span class="text-success">—</span>{% endif %}
                             </td>
-                            <td>{{ item.payment_count }}</td>
+                            <td>{{ item.payment_count }} naqd / {{ item.online_count }} online</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center text-muted">Ma'lumot topilmadi</td>
+                            <td colspan="9" class="text-center text-muted">Ma'lumot topilmadi</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -120,7 +137,7 @@
             </div>
             <div>
                 <span class="badge bg-light text-dark">Jami: {{ total_all_payments|floatformat:0 }} so'm</span>
-                <span class="badge bg-light text-dark">Soni: {{ all_payments.count }} ta</span>
+                <span class="badge bg-light text-dark">Soni: {{ all_payments|length }} ta</span>
             </div>
         </div>
         <div class="card-body p-0">

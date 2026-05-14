@@ -1677,7 +1677,6 @@ def click_webhook(request):
 def uzum_webhook(request):
     """Uzum Bank webhook handler"""
     import json as _json
-    import decimal
     try:
         data = _json.loads(request.body)
         service_id = data.get('serviceId', '')
@@ -1719,7 +1718,6 @@ def uzum_webhook(request):
 def apls_webhook(request):
     """Apelsin.uz to'lov tizimi webhook"""
     import json
-    import decimal
     try:
         data = json.loads(request.body)
         
@@ -1770,7 +1768,7 @@ def cap_webhook(request):
         
         transaction_id = str(data.get('transaction_id', ''))
         status = data.get('status', '')
-        amount = decimal.Decimal(data.get('amount', 0))
+        amount = Decimal(str(data.get('amount', 0)))
         order_id = str(data.get('order_id', ''))
         
         contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
@@ -1815,7 +1813,7 @@ def humo_webhook(request):
         
         transaction_id = str(data.get('transaction_id', ''))
         status = data.get('status', '')
-        amount = decimal.Decimal(data.get('amount', 0))
+        amount = Decimal(str(data.get('amount', 0)))
         order_id = str(data.get('order_id', ''))
         
         contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
@@ -1860,7 +1858,7 @@ def alif_webhook(request):
         
         transaction_id = str(data.get('transaction_id', ''))
         status = data.get('status', '')
-        amount = decimal.Decimal(data.get('amount', 0))
+        amount = Decimal(str(data.get('amount', 0)))
         order_id = str(data.get('order_id', ''))
         
         contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
@@ -1905,7 +1903,7 @@ def anorbank_webhook(request):
         
         transaction_id = str(data.get('transaction_id', ''))
         status = data.get('status', '')
-        amount = decimal.Decimal(data.get('amount', 0))
+        amount = Decimal(str(data.get('amount', 0)))
         order_id = str(data.get('order_id', ''))
         
         contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
@@ -1950,7 +1948,7 @@ def multicard_webhook(request):
         
         transaction_id = str(data.get('transaction_id', ''))
         status = data.get('status', '')
-        amount = decimal.Decimal(data.get('amount', 0))
+        amount = Decimal(str(data.get('amount', 0)))
         order_id = str(data.get('order_id', ''))
         
         contract = Contract.objects.filter(contract_number=order_id, is_active=True).first()
@@ -2054,11 +2052,9 @@ def _confirm_online_payment(op: OnlinePayment):
             
             journal_entry = JournalEntry.objects.create(
                 entry_date=timezone.now(),
-                reference=f"ONLINE-{op.transaction_id}",
-                memo=f"Online to'lov - {op.get_provider_display()} - {op.student.full_name}",
-                source='online_payment',
-                reference_type='online_payment',
-                reference_id=op.id,
+                reference=f"ONLINE-{op.transaction_id[:20]}",
+                memo=f"Online to'lov - {op.get_provider_display()} - {op.student.full_name if op.student else '—'}",
+                source='cash',
             )
             
             # GL Lines: Debit Kassa / Credit Daromad
@@ -2082,6 +2078,34 @@ def _confirm_online_payment(op: OnlinePayment):
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Online payment GL error: {str(e)}", exc_info=True)
+
+
+# ── Payment Complete / Cancel ────────────────────────────────────────
+@login_required
+def payment_complete(request):
+    """Online to'lov muvaffaqiyatli bo'lganda redirect sahifasi"""
+    order_id = request.GET.get('order_id', '')
+    transaction_id = request.GET.get('transaction_id', '')
+    op = OnlinePayment.objects.filter(
+        transaction_id=transaction_id
+    ).select_related('student', 'contract').first() if transaction_id else None
+    context = {
+        'op': op,
+        'order_id': order_id,
+        'page_title': "To'lov muvaffaqiyatli",
+    }
+    return render(request, 'students/payment_complete.html', context)
+
+
+@login_required
+def payment_cancel(request):
+    """Online to'lov bekor qilinganda redirect sahifasi"""
+    order_id = request.GET.get('order_id', '')
+    context = {
+        'order_id': order_id,
+        'page_title': "To'lov bekor qilindi",
+    }
+    return render(request, 'students/payment_cancel.html', context)
 
 
 # ── Payment Init (redirect to gateway) ───────────────────────────────
