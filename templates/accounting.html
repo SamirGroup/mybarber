@@ -896,20 +896,20 @@
 
     <form method="get" class="panel acc-filter-panel">
         <div class="acc-filter-group">
-            <label class="acc-filter-label">Preset oralig'lar</label>
+            <label class="acc-filter-label">Tezkor oraliq</label>
             <div class="acc-preset-grid">
-                <button type="submit" name="preset" value="today" class="acc-filter-btn{% if period == 'today' %} is-active{% endif %}">Today</button>
-                <button type="submit" name="preset" value="yesterday" class="acc-filter-btn{% if period == 'yesterday' %} is-active{% endif %}">Yesterday</button>
-                <button type="submit" name="preset" value="today_yesterday" class="acc-filter-btn{% if period == 'today_yesterday' %} is-active{% endif %}">Today & yesterday</button>
-                <button type="submit" name="preset" value="last_7" class="acc-filter-btn{% if period == 'last_7' %} is-active{% endif %}">Last 7 days</button>
-                <button type="submit" name="preset" value="last_14" class="acc-filter-btn{% if period == 'last_14' %} is-active{% endif %}">Last 14 days</button>
-                <button type="submit" name="preset" value="last_28" class="acc-filter-btn{% if period == 'last_28' %} is-active{% endif %}">Last 28 days</button>
-                <button type="submit" name="preset" value="last_30" class="acc-filter-btn{% if period == 'last_30' %} is-active{% endif %}">Last 30 days</button>
-                <button type="submit" name="preset" value="this_week" class="acc-filter-btn{% if period == 'this_week' %} is-active{% endif %}">This week</button>
-                <button type="submit" name="preset" value="last_week" class="acc-filter-btn{% if period == 'last_week' %} is-active{% endif %}">Last week</button>
-                <button type="submit" name="preset" value="this_month" class="acc-filter-btn{% if period == 'this_month' %} is-active{% endif %}">This month</button>
-                <button type="submit" name="preset" value="last_month" class="acc-filter-btn{% if period == 'last_month' %} is-active{% endif %}">Last month</button>
-                <button type="submit" name="preset" value="maximum" class="acc-filter-btn{% if period == 'maximum' %} is-active{% endif %}">Maximum</button>
+                <button type="submit" name="preset" value="today" class="acc-filter-btn{% if period == 'today' %} is-active{% endif %}">Bugun</button>
+                <button type="submit" name="preset" value="yesterday" class="acc-filter-btn{% if period == 'yesterday' %} is-active{% endif %}">Kecha</button>
+                <button type="submit" name="preset" value="today_yesterday" class="acc-filter-btn{% if period == 'today_yesterday' %} is-active{% endif %}">Bugun &amp; kecha</button>
+                <button type="submit" name="preset" value="last_7" class="acc-filter-btn{% if period == 'last_7' %} is-active{% endif %}">So'nggi 7 kun</button>
+                <button type="submit" name="preset" value="last_14" class="acc-filter-btn{% if period == 'last_14' %} is-active{% endif %}">So'nggi 14 kun</button>
+                <button type="submit" name="preset" value="last_28" class="acc-filter-btn{% if period == 'last_28' %} is-active{% endif %}">So'nggi 28 kun</button>
+                <button type="submit" name="preset" value="last_30" class="acc-filter-btn{% if period == 'last_30' %} is-active{% endif %}">So'nggi 30 kun</button>
+                <button type="submit" name="preset" value="this_week" class="acc-filter-btn{% if period == 'this_week' %} is-active{% endif %}">Joriy hafta</button>
+                <button type="submit" name="preset" value="last_week" class="acc-filter-btn{% if period == 'last_week' %} is-active{% endif %}">O'tgan hafta</button>
+                <button type="submit" name="preset" value="this_month" class="acc-filter-btn{% if period == 'this_month' %} is-active{% endif %}">Joriy oy</button>
+                <button type="submit" name="preset" value="last_month" class="acc-filter-btn{% if period == 'last_month' %} is-active{% endif %}">O'tgan oy</button>
+                <button type="submit" name="preset" value="maximum" class="acc-filter-btn{% if period == 'maximum' %} is-active{% endif %}">Hammasi</button>
             </div>
         </div>
         <div class="acc-filter-group">
@@ -924,7 +924,7 @@
                     <i class="fa-solid fa-calendar-days"></i>
                     <input type="text" name="date_to" value="{{ date_to|date:'Y-m-d' }}" class="form-control acc-date-input js-acc-date" autocomplete="off">
                 </div>
-                <button type="submit" name="preset" value="custom" class="btn-submit acc-filter-apply">Custom qo'llash</button>
+                <button type="submit" name="preset" value="custom" class="btn-submit acc-filter-apply">Qo'llash</button>
             </div>
         </div>
         <div class="acc-filter-range-note">
