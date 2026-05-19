@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% block breadcrumb %}Foydalanuvchilarni boshqarish{% endblock %}
 {% block content %}
 
@@ -97,11 +97,8 @@
                     <option value="seller">🛒 Sotuvchi</option>
                     <option value="production_manager">🏭 Ishlab chiqarish menejer</option>
                     <option value="branch_admin">🏪 Filial Admini</option>
-<<<<<<< HEAD
                     <option value="call_centre_admin">📞 Call Centre Admin</option>
-=======
                     <option value="students_manager">🎓 O'quv bo'limi</option>
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
                 </select>
             </div>
             <div class="form-group" id="branchGroup" style="display:none;">
@@ -161,11 +158,8 @@
                                 {% elif g == 'seller' %}<span class="badge badge-warning">Sotuvchi</span>
                                 {% elif g == 'production_manager' %}<span class="badge badge-info">Ishlab chiqarish</span>
                                 {% elif g == 'branch_admin' %}<span class="badge badge-warning">Filial Admin</span>
-<<<<<<< HEAD
                                 {% elif g == 'call_centre_admin' %}<span class="badge badge-info" style="background:#e3f2fd;color:#1565c0;">Call Centre</span>
-=======
                                 {% elif g == 'students_manager' %}<span class="badge badge-success">O'quv bo'limi</span>
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
                                 {% else %}{{ g }}{% endif %}
                             {% endwith %}
                         {% else %}<span style="color:#aaa;">—</span>{% endif %}
