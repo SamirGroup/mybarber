@@ -776,6 +776,14 @@ def sms_logs(request):
 # ── Chat ──────────────────────────────────────────────────────────────
 @login_required
 @students_required
+def chat_list_simple(request):
+    """Simple chat list - modelga bog'lanmasdan"""
+    context = {
+        'page_title': 'Chat guruhlar',
+    }
+    return render(request, 'students/chat_list_simple.html', context)
+@login_required
+@students_required
 def chat_list(request):
     chat_groups = ChatGroup.objects.select_related('created_by', 'classroom').all()
     

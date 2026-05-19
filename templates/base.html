@@ -1,194 +1,170 @@
 {% load static %}
-{% load i18n %}
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'uz' }}">
-
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sharjah School — CRM</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>{% block title %}My School CRM{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
     {% block extra_head %}{% endblock %}
 </head>
-
 <body>
     <div class="app-container">
         <aside class="sidebar" id="appSidebar">
             <div class="sidebar-header">
-                <i class="fa-solid fa-school logo-icon"> </i>
-                <h2>Sharjah<span class="highlight">School</span></h2>
+                <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <h2>My <span class="highlight">School</span></h2>
                 <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <ul class="nav-links">
+                {% if is_superadmin or is_enrollment or is_callcentre %}
+                <!-- QABUL BO'LIMI (Dropdown) -->
+                <li class="nav-group">
+                    <div class="nav-group__head {% if '/enrollment/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <i class="fa-solid fa-graduation-cap icon-left"></i>
+                            <span>Qabul bo'limi</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                    </div>
+                    <ul class="nav-sub {% if '/enrollment/' in request.path %}open{% endif %}">
+                        {% if is_callcentre and not is_superadmin %}
+                        <!-- Faqat Call Centre uchun -->
+                        <li><a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}" style="background:#03553B;color:#fff;"><i class="fa-solid fa-headset"></i><span>Call Panel</span></a></li>
+                        <li><a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}"><i class="fa-solid fa-users"></i><span>Mijozlar</span></a></li>
+                        <li><a href="/enrollment/" class="{% if request.path == '/enrollment/' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></a></li>
+                        {% else %}
+                        <!-- Superadmin va Enrollment uchun -->
+                        <li><a href="/enrollment/" class="{% if request.path == '/enrollment/' %}active{% endif %}"><i class="fa-solid fa-list"></i><span>Arizalar ro'yxati</span></a></li>
+                        <li><a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}"><i class="fa-solid fa-user-plus"></i><span>Leadlar</span></a></li>
+                        <li><a href="/enrollment/applications/" class="{% if '/enrollment/applications' in request.path %}active{% endif %}"><i class="fa-solid fa-file-lines"></i><span>Arizalar</span></a></li>
+                        <li><a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}"><i class="fa-solid fa-chart-bar"></i><span>Hisobotlar</span></a></li>
+                        <li><a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}"><i class="fa-solid fa-phone-volume"></i><span>Call Centre</span></a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
 
-                <!-- Dashboard: superadmin only -->
                 {% if is_superadmin %}
+                <!-- Boshqa menular faqat superadmin uchun -->
                 <li>
                     <a href="/" class="{% if request.path == '/' %}active{% endif %}">
                         <i class="fa-solid fa-chart-pie"></i>
-                        <span data-i18n="nav_dashboard">{% trans "Boshqaruv paneli" %}</span>
+                        <span>Boshqaruv paneli</span>
                     </a>
                 </li>
-                <li>
-                    <a href="/enrollment/" class="{% if '/enrollment/' in request.path and not '/enrollment/leads' in request.path and not '/enrollment/applications' in request.path and not '/enrollment/call-centre' in request.path and not '/enrollment/reports' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <span>Qabul bo'limi</span>
-                    </a>
+
+                <!-- ISHLAB CHIQARISH (Dropdown) -->
+                <li class="nav-group">
+                    <div class="nav-group__head {% if '/production/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <i class="fa-solid fa-industry icon-left"></i>
+                            <span>Ishlab chiqarish</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                    </div>
+                    <ul class="nav-sub {% if '/production/' in request.path %}open{% endif %}">
+                        <li><a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}"><i class="fa-solid fa-industry"></i><span>Dashboard</span></a></li>
+                        <li><a href="/production/manage/" class="{% if '/production/manage' in request.path %}active{% endif %}"><i class="fa-solid fa-box-open"></i><span>Mahsulotlar</span></a></li>
+                        <li><a href="/production/manage/?tab=tab-categories" class="{% if '/production/manage' in request.path and 'tab=tab-categories' in request.get_full_path %}active{% endif %}" style="padding-left:32px;font-size:13px;"><i class="fa-solid fa-folder"></i><span>Kategoriyalar</span></a></li>
+                    </ul>
                 </li>
-                <li>
-                    <a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Leadlar</span>
-                    </a>
+
+                <!-- BUXGALTERIYA (Dropdown) -->
+                <li class="nav-group">
+                    <div class="nav-group__head {% if '/accounting/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <i class="fa-solid fa-calculator icon-left"></i>
+                            <span>Buxgalteriya</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                    </div>
+                    <ul class="nav-sub {% if '/accounting/' in request.path %}open{% endif %}">
+                        <li><a href="/accounting/" class="{% if '/accounting/' in request.path %}active{% endif %}"><i class="fa-solid fa-calculator"></i><span>Dashboard</span></a></li>
+                        <li><a href="/accounting/?tab=transactions" class="{% if '/accounting/' in request.path and 'tab=transactions' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-money-bill-transfer"></i><span>Operatsiyalar</span></a></li>
+                        <li><a href="/accounting/?tab=registers" class="{% if '/accounting/' in request.path and 'tab=registers' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-wallet"></i><span>Kassalar</span></a></li>
+                        <li><a href="/accounting/?tab=reports" class="{% if '/accounting/' in request.path and 'tab=reports' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-file-invoice"></i><span>Hisobotlar</span></a></li>
+                    </ul>
                 </li>
-                <li>
-                    <a href="/enrollment/applications/" class="{% if '/enrollment/applications' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-file-lines"></i>
-                        <span>Arizalar</span>
-                    </a>
+
+                <!-- O'QUVCHILAR BO'LIMI (Dropdown) -->
+                <li class="nav-group">
+                    <div class="nav-group__head {% if '/students/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <i class="fa-solid fa-user-graduate icon-left"></i>
+                            <span>O'quvchilar bo'limi</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                    </div>
+                    <ul class="nav-sub {% if '/students/' in request.path %}open{% endif %}">
+                        <li><a href="/students/" class="{% if request.path == '/students/' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></a></li>
+                        <li><a href="/students/list/" class="{% if '/students/list' in request.path %}active{% endif %}"><i class="fa-solid fa-users"></i><span>O'quvchilar ro'yxati</span></a></li>
+                        <li><a href="/students/new/" class="{% if '/students/create' in request.path %}active{% endif %}"><i class="fa-solid fa-user-plus"></i><span>Yangi o'quvchi</span></a></li>
+                        <li><a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}"><i class="fa-solid fa-door-open"></i><span>Sinflar</span></a></li>
+                        <li><a href="/students/classrooms/new/" class="{% if '/students/classroom/create' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;"><i class="fa-solid fa-plus"></i><span>Yangi sinf</span></a></li>
+                        <li><a href="/students/schedule/" class="{% if '/students/schedule' in request.path %}active{% endif %}"><i class="fa-solid fa-calendar-days"></i><span>Dars jadvali</span></a></li>
+                        <li><a href="/students/homework/" class="{% if '/students/homework/list' in request.path %}active{% endif %}"><i class="fa-solid fa-book"></i><span>Uy vazifalar</span></a></li>
+                        <li><a href="/students/chat/" class="{% if '/students/chat/list' in request.path %}active{% endif %}"><i class="fa-solid fa-comments"></i><span>Chatlar</span></a></li>
+                        <li style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+                            <a href="/faceid/students/" class="{% if '/faceid/students' in request.path %}active{% endif %}" style="color:var(--primary);font-weight:600;">
+                                <i class="fa-solid fa-face-smile" style="color:var(--primary);"></i><span>FACE ID davomat</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-                <li>
-                    <a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-phone-volume"></i>
-                        <span>Call Centre</span>
-                    </a>
+
+                <!-- HR BO'LIMI (Dropdown) -->
+                <li class="nav-group">
+                    <div class="nav-group__head {% if '/hr/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <i class="fa-solid fa-users icon-left"></i>
+                            <span>HR Bo'limi</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                    </div>
+                    <ul class="nav-sub {% if '/hr/' in request.path %}open{% endif %}">
+                        <li><a href="/hr/" class="{% if request.path == '/hr/' %}active{% endif %}"><i class="fa-solid fa-id-badge"></i><span>Xodimlar ro'yxati</span></a></li>
+                        <li><a href="/hr/?tab=positions" class="{% if '/hr/' in request.path and 'tab=positions' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-briefcase"></i><span>Lavozimlar</span></a></li>
+                        <li><a href="/hr/?tab=reports" class="{% if '/hr/' in request.path and 'tab=reports' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-clipboard-list"></i><span>Kunlik hisobotlar</span></a></li>
+                        <li style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+                            <a href="/faceid/hr/" class="{% if '/faceid/hr' in request.path %}active{% endif %}" style="color:var(--primary);font-weight:600;">
+                                <i class="fa-solid fa-face-smile" style="color:var(--primary);"></i><span>FACE ID (xodimlar)</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/faceid/shared/" class="{% if '/faceid/shared' in request.path %}active{% endif %}" style="color:var(--primary);font-weight:600;">
+                                <i class="fa-solid fa-video" style="color:var(--primary);"></i><span>Umumiy kamera</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
+
+                <!-- FOYDALANUVCHILAR -->
                 <li>
-                    <a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-chart-bar"></i>
-                        <span>Hisobotlar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
-                        <i class="fa-solid fa-industry"></i>
-                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                    <a href="/admin-users/" class="{% if '/admin-users/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <span>Foydalanuvchilar</span>
                     </a>
                 </li>
                 {% endif %}
 
                 {% if is_seller and not is_superadmin %}
-                <li>
-                    <a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-cash-register"></i>
-                        <span data-i18n="nav_sales">Sotuv</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
-                        <i class="fa-solid fa-industry"></i>
-                        <span data-i18n="nav_production">Ishlab chiqarish</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/manage/"
-                        class="{% if '/production/manage' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-box-open"></i>
-                        <span data-i18n="nav_products">Mahsulotlar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/manage/?tab=tab-categories" style="padding-left:32px;font-size:13px;"
-                        class="{% if '/production/manage' in request.path and 'tab=tab-categories' in request.get_full_path %}active{% endif %}">
-                        <i class="fa-solid fa-folder"></i>
-                        <span>Kategoriyalar</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if is_production_mgr and not is_superadmin %}
-                <li>
-                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
-                        <i class="fa-solid fa-industry"></i>
-                        <span data-i18n="nav_production">Ishlab chiqarish</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/manage/"
-                        class="{% if '/production/manage' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-box-open"></i>
-                        <span data-i18n="nav_products">Mahsulotlar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/manage/?tab=tab-categories" style="padding-left:32px;font-size:13px;"
-                        class="{% if '/production/manage' in request.path and 'tab=tab-categories' in request.get_full_path %}active{% endif %}">
-                        <i class="fa-solid fa-folder"></i>
-                        <span>Kategoriyalar</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if is_accountant and not is_superadmin %}
-                <li>
-                    <a href="/accounting/" class="{% if '/accounting/' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-calculator"></i>
-                        <span data-i18n="nav_accounting">Buxgalteriya</span>
-                    </a>
-                </li>
-                {% if not is_accountant_only %}
-                <li>
-                    <a href="/" class="{% if request.path == '/' %}active{% endif %}">
-                        <i class="fa-solid fa-chart-pie"></i>
-                        <span data-i18n="nav_dashboard">Boshqaruv paneli</span>
-                    </a>
-                </li>
-                {% endif %}
-                {% endif %}
-
-                {% if is_enrollment and not is_superadmin %}
-                <li>
-                    <a href="/enrollment/" class="{% if '/enrollment/' in request.path and not '/enrollment/leads' in request.path and not '/enrollment/applications' in request.path and not '/enrollment/call-centre' in request.path and not '/enrollment/reports' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <span>Qabul bo'limi</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Leadlar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/enrollment/applications/" class="{% if '/enrollment/applications' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-file-lines"></i>
-                        <span>Arizalar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-phone-volume"></i>
-                        <span>Call Centre</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-chart-bar"></i>
-                        <span>Hisobotlar</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if is_hr and not is_superadmin %}
-                <li>
-                    <a href="/hr/" class="{% if '/hr/' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-users"></i>
-                        <span data-i18n="nav_hr">HR Bo'limi</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/hr/?tab=positions" class="{% if '/hr/' in request.path and 'tab=positions' in request.get_full_path %}active{% endif %}" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-briefcase"></i>
-                        <span>Lavozimlar</span>
-                    </a>
+                <li class="nav-group">
+                    <div class="nav-group__head {% if '/sales/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
+                        <span style="display:flex;align-items:center;gap:12px;">
+                            <i class="fa-solid fa-cash-register icon-left"></i>
+                            <span>Sotuv</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                    </div>
+                    <ul class="nav-sub {% if '/sales/' in request.path %}open{% endif %}">
+                        <li><a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}"><i class="fa-solid fa-cash-register"></i><span>POS kassa</span></a></li>
+                    </ul>
                 </li>
                 {% endif %}
 
@@ -196,62 +172,7 @@
                 <li>
                     <a href="/branches/" class="{% if '/branches/' in request.path %}active{% endif %}">
                         <i class="fa-solid fa-store"></i>
-                        <span>{% if user_branch %}{{ user_branch.name }}{% else %}<span
-                                data-i18n="nav_branches">Filiallar</span>{% endif %}</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if is_superadmin %}
-                <li>
-                    <a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}">
-                        <i class="fa-solid fa-industry"></i>
-                        <span data-i18n="nav_production">Ishlab chiqarish</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/manage/"
-                        class="{% if '/production/manage' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-box-open"></i>
-                        <span data-i18n="nav_products">Mahsulotlar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/production/manage/?tab=tab-categories" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-folder"></i>
-                        <span>Kategoriyalar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-cash-register"></i>
-                        <span data-i18n="nav_sales">Sotuv</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/branches/" class="{% if '/branches/' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-store"></i>
-                        <span data-i18n="nav_branches">Filiallar</span>
-                    </a>
-                </li>
-                <!-- Buxgalteriya: superadmin uchun har doim sub-menular -->
-                {% include 'includes/accounting_sidebar_block.html' %}
-                <li>
-                    <a href="/hr/" class="{% if '/hr/' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-users"></i>
-                        <span data-i18n="nav_hr">HR Bo'limi</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/hr/?tab=positions" style="padding-left:32px;font-size:13px;">
-                        <i class="fa-solid fa-briefcase"></i>
-                        <span>Lavozimlar</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/admin-users/" class="{% if '/admin-users/' in request.path %}active{% endif %}">
-                        <i class="fa-solid fa-user-gear"></i>
-                        <span data-i18n="nav_admin">Foydalanuvchilar</span>
+                        <span>{% if user_branch %}{{ user_branch.name }}{% else %}Filiallar{% endif %}</span>
                     </a>
                 </li>
                 {% endif %}
@@ -264,7 +185,6 @@
                     <button class="lang-btn" id="gt-btn-uz" data-lang="uz" onclick="gtSwitchLang('uz')" title="O'zbek">UZ</button>
                     <button class="lang-btn" id="gt-btn-ru" data-lang="ru" onclick="gtSwitchLang('ru')" title="Русский">RU</button>
                 </div>
-                <!-- Google Translate widget (yashirin) -->
                 <div id="google_translate_element" style="display:none;"></div>
             </div>
         </aside>
@@ -273,8 +193,7 @@
         <main class="main-content">
             <header class="topbar">
                 <div class="topbar-left">
-                    <button class="menu-toggle" id="mobileMenuToggle" type="button" aria-label="Open navigation menu"
-                        aria-controls="appSidebar" aria-expanded="false">
+                    <button class="menu-toggle" id="mobileMenuToggle" type="button" aria-label="Open navigation menu">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <div class="breadcrumb">{% block breadcrumb %}{% endblock %}</div>
@@ -285,12 +204,9 @@
                         <div class="avatar"><i class="fa-solid fa-user"></i></div>
                         <span class="user-name">
                             {{ request.user.username }}
-                            {% if is_superadmin %}<span class="badge badge-danger"
-                                style="font-size:11px;">SuperAdmin</span>
-                            {% elif user_branch %}<span class="badge badge-info" style="font-size:11px;">{{
-                                user_branch.name }}</span>
-                            {% elif request.user.groups.all.0 %}<span class="badge badge-warning"
-                                style="font-size:11px;">{{ request.user.groups.all.0.name }}</span>
+                            {% if is_superadmin %}<span class="badge badge-danger" style="font-size:11px;">SuperAdmin</span>
+                            {% elif user_branch %}<span class="badge badge-info" style="font-size:11px;">{{ user_branch.name }}</span>
+                            {% elif request.user.groups.all.0 %}<span class="badge badge-warning" style="font-size:11px;">{{ request.user.groups.all.0.name }}</span>
                             {% endif %}
                         </span>
                         <a href="/logout/" style="color:#dc3545;font-size:17px;" title="Chiqish">
@@ -304,8 +220,7 @@
                 {% if messages %}
                 {% for message in messages %}
                 <div class="alert alert-{{ message.tags }}">
-                    <i
-                        class="fa-solid fa-{% if message.tags == 'success' %}circle-check{% elif message.tags == 'error' %}circle-xmark{% else %}triangle-exclamation{% endif %}"></i>
+                    <i class="fa-solid fa-{% if message.tags == 'success' %}circle-check{% elif message.tags == 'error' %}circle-xmark{% else %}triangle-exclamation{% endif %}"></i>
                     {{ message }}
                 </div>
                 {% endfor %}
@@ -318,6 +233,30 @@
     <script src="{% static 'js/i18n.js' %}?v=3.1"></script>
     {% block extra_scripts %}{% endblock %}
     <script src="{% static 'js/main.js' %}?v=4"></script>
+
+    <!-- Dropdown menular uchun script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.nav-group > .nav-group__head').forEach(function(head) {
+            head.setAttribute('onclick', 'toggleSubMenu(this)');
+        });
+        
+        var currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-sub li a').forEach(function(link) {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+                var parent = link.closest('.nav-sub');
+                if (parent) {
+                    parent.classList.add('open');
+                    var head = parent.parentElement.querySelector('.nav-group__head');
+                    if (head) {
+                        head.classList.add('expanded');
+                    }
+                }
+            }
+        });
+    });
+    </script>
 
     <!-- Google Translate -->
     <script>
@@ -367,38 +306,14 @@
     </script>
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     <style>
-        .goog-te-banner-frame {
-            display: none !important;
-        }
-
-        .skiptranslate>iframe {
-            display: none !important;
-        }
-
-        body {
-            top: 0 !important;
-        }
-
-        .goog-te-gadget {
-            font-size: 0 !important;
-        }
-
-        .goog-te-gadget>span {
-            display: none !important;
-        }
-
-        #google_translate_element {
-            display: none !important;
-        }
-
-        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
-            display: none !important;
-        }
-
-        .VIpgJd-ZVi9od-aZ2wEe {
-            display: none !important;
-        }
+        .goog-te-banner-frame { display: none !important; }
+        .skiptranslate>iframe { display: none !important; }
+        body { top: 0 !important; }
+        .goog-te-gadget { font-size: 0 !important; }
+        .goog-te-gadget>span { display: none !important; }
+        #google_translate_element { display: none !important; }
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf { display: none !important; }
+        .VIpgJd-ZVi9od-aZ2wEe { display: none !important; }
     </style>
 </body>
-
 </html>

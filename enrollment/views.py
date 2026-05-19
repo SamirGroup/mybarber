@@ -20,7 +20,7 @@ import json
 def _is_enrollment_staff(user):
     if user.is_superuser:
         return True
-    return user.groups.filter(name__in=['enrollment_agent', 'enrollment_manager']).exists()
+    return user.groups.filter(name__in=['enrollment_agent', 'enrollment_manager', 'call_centre_admin']).exists()
 
 
 def enrollment_required(view):

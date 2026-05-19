@@ -25,15 +25,16 @@ SECRET_KEY = 'django-insecure-#8dh8-hxh*8j93l2k@dfu8n1rr@s2-tyezw9-iw33g1@y)bgoa
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-
+# DEBUG = os.getenv('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = ["*"]
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'mybakeryerp-production.up.railway.app',
+    'web-production-058b4.up.railway.app',
     '.railway.app',  # Barcha railway.app domenlariga ruxsat
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'https://mybakeryerp-production.up.railway.app',
+    'web-production-058b4.up.railway.app',
     'https://*.railway.app',
 ]
 
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
     'hr',
     'enrollment',
     'students',
+    'faceid',
     'rosetta',
     'whitenoise.runserver_nostatic',
     'whitenoise',
@@ -164,6 +166,10 @@ CALL_CENTER_AGENT_NUMBER = os.getenv('CALL_CENTER_AGENT_NUMBER', '')
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# FACE ID davomat (maktab kirish / o'quvchilar / HR)
+FACEID_TOLERANCE = float(os.getenv('FACEID_TOLERANCE', '0.55'))
+FACEID_COOLDOWN_SECONDS = int(os.getenv('FACEID_COOLDOWN_SECONDS', '45'))
 
 # Meta Webhook
 META_VERIFY_TOKEN = os.getenv('META_VERIFY_TOKEN', '')

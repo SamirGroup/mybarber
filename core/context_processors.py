@@ -14,6 +14,7 @@ def user_roles(request):
             pass
 
     is_accountant_only = (not is_superadmin) and ('accountant' in groups) and len(groups) == 1
+    is_callcentre = 'call_centre_admin' in groups
 
     return {
         'is_superadmin':      is_superadmin,
@@ -25,5 +26,6 @@ def user_roles(request):
         'is_production_mgr':  is_superadmin or 'production_manager' in groups,
         'is_enrollment':      is_superadmin or 'enrollment_agent'   in groups or 'enrollment_manager' in groups,
         'is_students':        is_superadmin or 'students_agent'     in groups or 'students_manager' in groups or 'enrollment_agent' in groups or 'enrollment_manager' in groups,
+        'is_callcentre':      is_superadmin or is_callcentre,
         'user_branch':        user_branch,
     }

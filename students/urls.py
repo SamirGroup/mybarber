@@ -43,7 +43,7 @@ urlpatterns = [
     path('sms/logs/', views.sms_logs, name='students_sms_logs'),
 
     # Chat
-    path('chat/', views.chat_list, name='students_chat_list'),
+    path('chat/', views.chat_list_simple, name='students_chat_list'),
     path('chat/new/', views.chat_create, name='students_chat_create'),
     path('chat/<int:pk>/', views.chat_detail, name='students_chat_detail'),
     path('chat/<int:pk>/send/', views.chat_send, name='students_chat_send'),

@@ -18,7 +18,7 @@ from branches.models import BranchSale, BranchSaleItem, Branch
 from .models import UserProfile
 
 
-ROLE_GROUPS = ['accountant', 'hr', 'seller', 'branch_admin', 'production_manager']
+ROLE_GROUPS = ['accountant', 'hr', 'seller', 'branch_admin', 'production_manager', 'enrollment_agent', 'enrollment_manager', 'students_agent', 'students_manager', 'call_centre_admin']
 
 
 def _ensure_groups():
@@ -156,6 +156,8 @@ def dashboard(request):
             return redirect('enrollment_dashboard')
         if 'students_agent' in groups or 'students_manager' in groups:
             return redirect('students_dashboard')
+        if 'call_centre_admin' in groups:
+            return redirect('enrollment_call_centre')
         # Unknown role — show a plain access-denied page
         return render(request, 'no_access.html')
 

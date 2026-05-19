@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+  .faceid-shell { max-width: 1100px; margin: 0 auto; }
+  .faceid-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .faceid-grid { grid-template-columns: 1fr; } }
+  .faceid-card { background: #fff; border: 1px solid #C8DCC8; border-radius: 18px; padding: 24px; box-shadow: 0 4px 12px rgba(3, 85, 59, 0.10); }
+  .faceid-video-wrap { position: relative; background: #1a1a1a; border-radius: 14px; overflow: hidden; aspect-ratio: 4/3; }
+  #faceid-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .faceid-status { margin-top: 16px; padding: 14px 18px; border-radius: 12px; font-weight: 600; min-height: 48px; }
+  .faceid-status.idle { background: #F4F9F4; color: #5A6B5D; }
+  .faceid-status.ok { background: #D4EDDA; color: #03553B; }
+  .faceid-status.warn { background: #FFF3E0; color: #E65100; }
+  .faceid-status.err { background: #FFEBEE; color: #C62828; }
+  .faceid-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
+  .faceid-log-item { padding: 10px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+  .faceid-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+  .faceid-badge.student { background: #E3F2FD; color: #1565C0; }
+  .faceid-badge.employee { background: #F3E5F5; color: #6A1B9A; }
+  .faceid-badge.shared { background: #D4EDDA; color: #03553B; }
+  .engine-warn { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
+  .scope-info { border-radius: 12px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .scope-info.students { background: #E3F2FD; color: #03553B; border: 1px solid #C8DCC8; }
+  .scope-info.hr { background: #D4EDDA; color: #03553B; border: 1px solid #C8DCC8; }
+  .scope-info.shared { background: #D4EDDA; color: #03553B; border: 1px solid #04684A; }
+  .cam-detect-row { display: flex; gap: 8px; align-items: center; }
+  .cam-detect-row select { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid #C8DCC8; background: #F4F9F4; font-size: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="faceid-shell">
+  <div class="header-row" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:26px;margin:0 0 6px;color:#03553B;">
+        <i class="fa-solid fa-face-smile" style="color:#03553B;"></i> {{ page_title }}
+      </h1>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if scope == 'students' %}
+      <a href="{% url 'students_dashboard' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-arrow-left"></i> O'quvchilar</a>
+      <a href="{% url 'faceid_hr' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-users"></i> HR kamerasi</a>
+      <a href="{% url 'faceid_shared' %}" class="btn" style="background:#03553B;color:#fff;"><i class="fa-solid fa-video"></i> Umumiy kamera</a>
+      {% elif scope == 'hr' %}
+      <a href="/hr/" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-arrow-left"></i> HR</a>
+      <a href="{% url 'faceid_students' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-user-graduate"></i> O'quvchilar kamerasi</a>
+      <a href="{% url 'faceid_shared' %}" class="btn" style="background:#03553B;color:#fff;"><i class="fa-solid fa-video"></i> Umumiy kamera</a>
+      {% else %}
+      <a href="{% url 'students_dashboard' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-user-graduate"></i> O'quvchilar</a>
+      <a href="/hr/" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-users"></i> HR</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not engine.available %}
+  <div class="engine-warn">
+    <strong><i class="fa-solid fa-triangle-exclamation"></i> Diqqat:</strong> {{ engine.message }}
+    <br>Serverda: <code>pip install face_recognition</code> — keyin: <code>python manage.py rebuild_face_profiles</code>
+  </div>
+  {% endif %}
+
+  <!-- Scope tushuntirish -->
+  <div class="scope-info {{ scope }}">
+    {% if scope == 'shared' %}
+    <i class="fa-solid fa-video" style="font-size:18px;"></i>
+    <div>
+      <strong>Umumiy kirish kamerasi</strong> — maktab kirish qismiga ulangan (qorovulxona yoki asosiy eshik).
+      Kamera <strong>avtomatik</strong> bazadan tekshiradi: o'quvchi kelsa → O'quvchilar davomatiga, xodim kelsa → HR davomatiga yoziladi.
+    </div>
+    {% elif scope == 'students' %}
+    <i class="fa-solid fa-user-graduate" style="font-size:18px;"></i>
+    <div>
+      <strong>O'quvchilar FACE ID</strong> — faqat o'quvchilar davomati uchun alohida kamera.
+      Tanilgan o'quvchi avtomatik "Keldi" deb belgilanadi.
+    </div>
+    {% else %}
+    <i class="fa-solid fa-users" style="font-size:18px;"></i>
+    <div>
+      <strong>Xodimlar FACE ID</strong> — faqat xodimlar davomati uchun.
+      Tanilgan xodim HR kunlik hisobotiga avtomatik yoziladi.
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="faceid-grid">
+    <!-- Kamera paneli -->
+    <div class="faceid-card">
+      <h3 style="margin:0 0 14px;font-size:16px;"><i class="fa-solid fa-video"></i> Kamerani ulash</h3>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">Kamera tanlang</label>
+        <div class="cam-detect-row">
+          <select id="faceid-camera-select">
+            <option value="">— Kamera aniqlanmoqda... —</option>
+          </select>
+          <button type="button" id="faceid-btn-detect" class="btn" title="Kameralarni qayta aniqlash" style="white-space:nowrap;padding:10px 14px;">
+            <i class="fa-solid fa-rotate"></i> Aniqlash
+          </button>
+        </div>
+        <div id="faceid-cam-info" style="font-size:12px;color:#888;margin:6px 0 0;">
+          Kompyuterga ulangan USB yoki ichki web-kamera avtomatik ro'yxatga chiqadi.
+          USB kamera ulasangiz — avtomatik aniqlanadi.
+        </div>
+      </div>
+
+      <div class="faceid-video-wrap">
+        <video id="faceid-video" autoplay playsinline muted></video>
+      </div>
+
+      <div id="faceid-status" class="faceid-status idle">Kamerani tanlang va «Ishga tushirish» bosing.</div>
+
+      <div class="faceid-controls">
+        <button type="button" id="faceid-btn-start" class="btn btn-primary"><i class="fa-solid fa-play"></i> Ishga tushirish</button>
+        <button type="button" id="faceid-btn-stop" class="btn" disabled><i class="fa-solid fa-stop"></i> To'xtatish</button>
+        <button type="button" id="faceid-btn-scan" class="btn btn-primary" disabled><i class="fa-solid fa-camera"></i> Hozir tekshirish</button>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-left:auto;cursor:pointer;">
+          <input type="checkbox" id="faceid-auto" checked> Avtomatik (har 3 s)
+        </label>
+      </div>
+
+      <div style="margin-top:14px;font-size:12px;color:#888;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span>FACE profillar: o'quvchilar <strong>{{ profile_counts.students }}</strong>, xodimlar <strong>{{ profile_counts.employees }}</strong>.</span>
+        <button type="button" id="faceid-btn-rebuild" class="btn" style="padding:4px 10px;font-size:12px;">
+          <i class="fa-solid fa-arrows-rotate"></i> Rasmlardan qayta yuklash
+        </button>
+      </div>
+    </div>
+
+    <!-- So'nggi yozuvlar -->
+    <div class="faceid-card">
+      <h3 style="margin:0 0 14px;font-size:16px;"><i class="fa-solid fa-clock-rotate-left"></i> So'nggi yozuvlar</h3>
+      <div id="faceid-logs">
+        {% for log in recent_logs %}
+        <div class="faceid-log-item">
+          <span style="color:#888;">{{ log.checked_at|time:"H:i:s" }}</span>
+          {% if log.person_type == 'student' %}<span class="faceid-badge student">O'quvchi</span>
+          {% elif log.person_type == 'employee' %}<span class="faceid-badge employee">Xodim</span>{% endif %}
+          <br>{{ log.message|default:log.get_result_display }}
+        </div>
+        {% empty %}
+        <p style="color:#888;">Hali yozuv yo'q.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Kamera sozlamalari (saqlangan) -->
+      {% if cameras %}
+      <div style="margin-top:20px;border-top:1px solid #eee;padding-top:14px;">
+        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase;">Saqlangan kameralar</div>
+        {% for cam in cameras %}
+        <div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f5f0e8;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-video" style="color:{% if cam.is_default %}#2e7d32{% else %}#aaa{% endif %};"></i>
+          <span>{{ cam.name }}</span>
+          {% if cam.is_default %}<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:4px;">Default</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<canvas id="faceid-canvas" style="display:none;"></canvas>
+
+<script>
+  window.FACEID_CONFIG = {
+    scope: "{{ scope }}",
+    defaultCameraId: {% if default_camera %}"{{ default_camera.device_id|escapejs }}"{% else %}""{% endif %},
+    defaultCameraDbId: {% if default_camera %}{{ default_camera.id }}{% else %}null{% endif %},
+    apiRecognize: "{% url 'faceid_api_recognize' %}",
+    apiCameraSave: "{% url 'faceid_api_camera_save' %}",
+    apiLogs: "{% url 'faceid_api_logs' %}",
+    apiRebuild: "{% url 'faceid_api_rebuild' %}",
+    csrfToken: "{{ csrf_token }}",
+  };
+</script>
+<script src="{% static 'js/faceid_kiosk.js' %}?v=2"></script>
+{% endblock %}

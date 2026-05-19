@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 style="font-size:28px;margin-bottom:24px;">🎓 O'quvchilar bo'limi — Xususiy Maktab</h1>
+<h1 style="font-size:28px;margin-bottom:24px;color:#03553B;"><i class="fa-solid fa-graduation-cap" style="color:#03553B;"></i> O'quvchilar bo'limi — Xususiy Maktab</h1>
 
 <!-- KPI cards -->
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;">
-  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
-    <div style="font-size:32px;font-weight:800;color:#D4A373;">{{ students_total }}</div>
-    <div style="font-size:13px;color:#666;">Jami o'quvchilar</div>
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:20px; text-align:center; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <div style="font-size:32px;font-weight:800;color:#03553B;">{{ students_total }}</div>
+    <div style="font-size:13px;color:#5A6B5D;">Jami o'quvchilar</div>
   </div>
-  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
-    <div style="font-size:32px;font-weight:800;color:#4ca653;">{{ students_active }}</div>
-    <div style="font-size:13px;color:#666;">Faol o'quvchilar</div>
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:20px; text-align:center; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <div style="font-size:32px;font-weight:800;color:#04684A;">{{ students_active }}</div>
+    <div style="font-size:13px;color:#5A6B5D;">Faol o'quvchilar</div>
   </div>
-  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
-    <div style="font-size:32px;font-weight:800;color:#2a5ec0;">{{ classrooms_total }}</div>
-    <div style="font-size:13px;color:#666;">Sinf xonalari</div>
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:20px; text-align:center; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <div style="font-size:32px;font-weight:800;color:#0A7A48;">{{ classrooms_total }}</div>
+    <div style="font-size:13px;color:#5A6B5D;">Sinf xonalari</div>
   </div>
-  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:20px;text-align:center;">
-    <div style="font-size:32px;font-weight:800;color:#a4333f;">{{ contracts_total }}</div>
-    <div style="font-size:13px;color:#666;">Faol shartnomalar</div>
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:20px; text-align:center; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <div style="font-size:32px;font-weight:800;color:#03553B;">{{ contracts_total }}</div>
+    <div style="font-size:13px;color:#5A6B5D;">Faol shartnomalar</div>
   </div>
 </div>
 
@@ -27,16 +27,25 @@
 <div style="margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;">
   <a href="{% url 'students_create' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi o'quvchi</a>
   <a href="{% url 'students_classroom_create' %}" class="btn btn-primary"><i class="fa-solid fa-door-open"></i> Yangi sinf</a>
-  <a href="{% url 'students_list' %}" class="btn"><i class="fa-solid fa-users"></i> Barcha o'quvchilar</a>
-  <a href="{% url 'students_schedule' %}" class="btn"><i class="fa-solid fa-calendar"></i> Dars jadvali</a>
-  <a href="{% url 'students_homework_list' %}" class="btn"><i class="fa-solid fa-book"></i> Uy vazifalar</a>
-  <a href="{% url 'students_chat_list' %}" class="btn"><i class="fa-solid fa-comments"></i> Chatlar</a>
+  <a href="{% url 'students_list' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-users"></i> Barcha o'quvchilar</a>
+  <a href="{% url 'students_schedule' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-calendar"></i> Dars jadvali</a>
+  <a href="{% url 'students_homework_list' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-book"></i> Uy vazifalar</a>
+  <a href="{% url 'students_chat_list' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-comments"></i> Chatlar</a>
+  <a href="{% url 'faceid_students' %}" class="btn btn-primary" style="background:#04684A;border-color:#04684A;">
+    <i class="fa-solid fa-face-smile"></i> FACE ID davomat
+  </a>
+  <a href="{% url 'faceid_shared' %}" class="btn" style="background:#D4EDDA;color:#03553B;" title="Umumiy kirish kamerasi">
+    <i class="fa-solid fa-video"></i> Umumiy kamera
+  </a>
+  <a href="{% url 'faceid_hr' %}" class="btn" style="background:#D4EDDA;color:#03553B;" title="HR xodimlar uchun FACE ID">
+    <i class="fa-solid fa-user-check"></i> HR FACE ID
+  </a>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
   <!-- Recent students -->
-  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
-    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-user-graduate" style="color:#D4A373;"></i> So'nggi o'quvchilar</h3>
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <h3 style="margin-bottom:16px;color:#03553B;"><i class="fa-solid fa-user-graduate" style="color:#04684A;"></i> So'nggi o'quvchilar</h3>
     {% if recent_students %}
     <table class="data-table" style="width:100%;">
       <thead>
@@ -59,8 +68,8 @@
   </div>
 
   <!-- Debtors -->
-  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
-    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-exclamation-triangle" style="color:#D4A373;"></i> Qarzdorlar (bu oy)</h3>
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <h3 style="margin-bottom:16px;color:#03553B;"><i class="fa-solid fa-exclamation-triangle" style="color:#04684A;"></i> Qarzdorlar (bu oy)</h3>
     {% if debtors %}
     <table class="data-table" style="width:100%;">
       <thead>
@@ -85,27 +94,14 @@
 
 <!-- Recent payments & homework -->
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
-  <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
-    <h3 style="margin-bottom:16px;"><i class="fa-solid fa-money-bill" style="color:#D4A373;"></i> So'nggi to'lovlar</h3>
-    {% if recent_payments %}
-    <table class="data-table" style="width:100%;">
-      <thead>
-        <tr><th>O'quvchi</th><th>Summa</th><th>Sana</th></tr>
-      </thead>
-      <tbody>
-        {% for p in recent_payments %}
-        <tr>
-          <td>{{ p.student.full_name }}</td>
-          <td>{{ p.amount|floatformat:0 }} so'm</td>
-          <td>{{ p.payment_date|date:"d M" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p style="color:#888;">To'lovlar yo'q.</p>
-    {% endif %}
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <h3 style="margin-bottom:16px;color:#03553B;"><i class="fa-solid fa-money-bill" style="color:#04684A;"></i> So'nggi to'lovlar</h3>
   </div>
+
+  <div class="card" style="background:#fff; border:1px solid #C8DCC8; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+    <h3 style="margin-bottom:16px;color:#03553B;"><i class="fa-solid fa-book-open" style="color:#04684A;"></i> Uy vazifalar</h3>
+  </div>
+</div>
 
   <div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
     <h3 style="margin-bottom:16px;"><i class="fa-solid fa-book-open" style="color:#D4A373;"></i> Uy vazifalar</h3>

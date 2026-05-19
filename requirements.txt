@@ -65,6 +65,8 @@ packaging==26.0
 pandas==2.3.3
 pathspec==1.0.4
 pillow==12.0.0
+# FACE ID davomat (ixtiyoriy, lekin tavsiya etiladi):
+# face_recognition==1.3.0
 platformdirs==4.9.4
 polib==1.2.0
 prompt_toolkit==3.0.52

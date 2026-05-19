@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}Chatlar{% endblock %}
+
+{% block content %}
+<h1 style="font-size:28px;margin-bottom:24px;color:#03553B;"><i class="fa-solid fa-comments" style="color:#04684A;"></i> Chat guruhlar</h1>
+
+<div style="margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;">
+  <a href="#" class="btn btn-primary" style="background:#03553B;"><i class="fa-solid fa-plus"></i> Yangi chat guruhi (tezlikda)</a>
+  <a href="{% url 'students_classroom_list' %}" class="btn" style="background:#D4EDDA;color:#03553B;"><i class="fa-solid fa-door-open"></i> Sinflar</a>
+</div>
+
+<div class="card" style="background:#fff;border:1px solid #C8DCC8;border-radius:16px;padding:24px;box-shadow:0 4px 12px rgba(3,85,59,0.10);">
+  <div style="text-align:center;padding:60px 20px;color:#5A6B5D;">
+    <i class="fa-solid fa-comments-slash" style="font-size:64px;color:#D4EDDA;margin-bottom:16px;"></i>
+    <h3 style="margin-bottom:12px;color:#03553B;">Chat guruhlar hozircha mavjud emas</h3>
+    <p style="margin-bottom:24px;">Bu xususiyat tez orada qo'shiladi!</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="{% url 'students_classroom_list' %}" class="btn" style="background:#04684A;color:#fff;">Sinflarni ko'rish</a>
+      <a href="{% url 'students_schedule' %}" class="btn" style="background:#04684A;color:#fff;">Dars jadvali</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

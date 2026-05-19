@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kirish | Bunyod NON CRM</title>
+    <title>Kirish | My School CRM</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -25,9 +25,9 @@
             justify-content: center;
             padding: 20px;
             background:
-                radial-gradient(ellipse 70% 50% at 15% 10%, rgba(212, 163, 115, 0.25), transparent),
-                radial-gradient(ellipse 60% 45% at 85% 90%, rgba(166, 176, 127, 0.2), transparent),
-                linear-gradient(155deg, #fefae0 0%, #f5e8d0 45%, #ede0c4 100%);
+                radial-gradient(ellipse 70% 50% at 15% 10%, rgba(3, 85, 59, 0.15), transparent),
+                radial-gradient(ellipse 60% 45% at 85% 90%, rgba(4, 104, 74, 0.1), transparent),
+                linear-gradient(155deg, #F4F9F4 0%, #E8F5E9 45%, #D4EDDA 100%);
         }
 
         .page {
@@ -50,8 +50,8 @@
         .lang-bar {
             display: flex;
             gap: 6px;
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(212, 163, 115, 0.25);
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(3, 85, 59, 0.25);
             border-radius: 12px;
             padding: 5px;
             backdrop-filter: blur(6px);
@@ -65,21 +65,21 @@
             font-weight: 700;
             cursor: pointer;
             background: transparent;
-            color: #8a7a65;
+            color: #5A6B5D;
             transition: all 0.18s;
             font-family: inherit;
             letter-spacing: 0.3px;
         }
 
         .lang-btn:hover {
-            background: rgba(212, 163, 115, 0.15);
-            color: #5a4a35;
+            background: rgba(3, 85, 59, 0.15);
+            color: #03553B;
         }
 
         .lang-btn.active {
-            background: linear-gradient(135deg, #D4A373, #b88656);
+            background: linear-gradient(135deg, #03553B, #04684A);
             color: white;
-            box-shadow: 0 3px 10px rgba(212, 163, 115, 0.4);
+            box-shadow: 0 3px 10px rgba(3, 85, 59, 0.4);
         }
 
         /* ── MAIN PANELS ── */
@@ -95,11 +95,11 @@
             border-radius: 22px;
             box-shadow:
                 0 2px 0 rgba(255, 255, 255, 0.8) inset,
-                0 20px 50px rgba(160, 120, 70, 0.12);
+                0 20px 50px rgba(3, 85, 59, 0.12);
             padding: 28px 26px;
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(212, 163, 115, 0.12);
+            border: 1px solid rgba(3, 85, 59, 0.12);
         }
 
         /* ── LEFT: role cards ── */
@@ -108,7 +108,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            color: #b0a090;
+            color: #5A6B5D;
             margin-bottom: 14px;
             display: flex;
             align-items: center;
@@ -123,7 +123,7 @@
         }
 
         .role-card {
-            border: 2px solid #f0ebe2;
+            border: 2px solid #E8F5E9;
             border-radius: 14px;
             padding: 13px 10px 11px;
             cursor: pointer;
@@ -134,20 +134,20 @@
             flex-direction: column;
             align-items: center;
             gap: 5px;
-            background: #fdfcf9;
+            background: #F4F9F4;
         }
 
         .role-card:hover {
-            border-color: #D4A373;
-            box-shadow: 0 4px 16px rgba(212, 163, 115, 0.2);
+            border-color: #03553B;
+            box-shadow: 0 4px 16px rgba(3, 85, 59, 0.2);
             transform: translateY(-2px);
             background: white;
         }
 
         .role-card.selected {
-            border-color: #D4A373;
-            background: linear-gradient(145deg, #fffdf7, #fef4e4);
-            box-shadow: 0 6px 20px rgba(212, 163, 115, 0.28);
+            border-color: #03553B;
+            background: linear-gradient(145deg, #F4F9F4, #D4EDDA);
+            box-shadow: 0 6px 20px rgba(3, 85, 59, 0.28);
         }
 
         .rc-icon {
@@ -161,28 +161,28 @@
         }
 
         .role-card[data-role="superadmin"] .rc-icon {
-            background: #fde8d8;
-            color: #c0622a;
+            background: #D4EDDA;
+            color: #03553B;
         }
 
         .role-card[data-role="accountant"] .rc-icon {
-            background: #d8f0e8;
-            color: #1e7a50;
+            background: #E8F5E9;
+            color: #04684A;
         }
 
         .role-card[data-role="hr"] .rc-icon {
-            background: #dce8fd;
-            color: #2a5ec0;
+            background: #D4EDDA;
+            color: #03553B;
         }
 
         .role-card[data-role="seller"] .rc-icon {
-            background: #f0ddf8;
-            color: #7a2ac0;
+            background: #E8F5E9;
+            color: #04684A;
         }
 
         .role-card[data-role="production_manager"] .rc-icon {
-            background: #fff0cc;
-            color: #a07800;
+            background: #D4EDDA;
+            color: #03553B;
         }
 
         .role-card[data-role="branch_admin"] .rc-icon {
@@ -190,23 +190,28 @@
             color: #1a7a6a;
         }
 
+        .role-card[data-role="call_centre_admin"] .rc-icon {
+            background: #D4EDDA;
+            color: #03553B;
+        }
+
         .rc-title {
             font-size: 11.5px;
             font-weight: 700;
-            color: #2f2a25;
+            color: #03553B;
             line-height: 1.2;
         }
 
         .rc-desc {
             font-size: 9.5px;
-            color: #a09080;
+            color: #5A6B5D;
             line-height: 1.3;
         }
 
         .rc-check {
             display: none;
             font-size: 10px;
-            color: #D4A373;
+            color: #03553B;
             font-weight: 700;
         }
 
@@ -224,13 +229,13 @@
             display: none;
             align-items: center;
             gap: 7px;
-            background: linear-gradient(90deg, #fef4e4, #fde8d8);
-            border: 1px solid rgba(212, 163, 115, 0.3);
+            background: linear-gradient(90deg, #D4EDDA, #E8F5E9);
+            border: 1px solid rgba(3, 85, 59, 0.3);
             border-radius: 10px;
             padding: 9px 14px;
             font-size: 12px;
             font-weight: 600;
-            color: #7a5a30;
+            color: #03553B;
             margin-bottom: 20px;
         }
 
@@ -244,7 +249,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #8a7a65;
+            color: #5A6B5D;
             margin-bottom: 6px;
         }
 
@@ -256,19 +261,19 @@
         .inp {
             width: 100%;
             padding: 12px 14px;
-            border: 2px solid #ede8df;
+            border: 2px solid #C8DCC8;
             border-radius: 12px;
             font-size: 14px;
             font-family: inherit;
-            color: #2f2a25;
-            background: #fdfcf9;
+            color: #1A1A1A;
+            background: #F4F9F4;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .inp:focus {
-            border-color: #D4A373;
+            border-color: #03553B;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.15);
+            box-shadow: 0 0 0 3px rgba(3, 85, 59, 0.15);
             background: white;
         }
 
@@ -277,7 +282,7 @@
             left: 13px;
             top: 50%;
             transform: translateY(-50%);
-            color: #c0b0a0;
+            color: #5A6B5D;
             font-size: 14px;
             pointer-events: none;
         }
@@ -294,7 +299,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #b0a090;
+            color: #5A6B5D;
             font-size: 14px;
             padding: 2px;
         }
@@ -302,7 +307,7 @@
         .btn-login {
             width: 100%;
             padding: 13px;
-            background: linear-gradient(135deg, #D4A373 0%, #b88656 100%);
+            background: linear-gradient(135deg, #03553B 0%, #04684A 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -315,7 +320,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            box-shadow: 0 6px 20px rgba(212, 163, 115, 0.38);
+            box-shadow: 0 6px 20px rgba(3, 85, 59, 0.38);
             font-family: inherit;
         }
 
@@ -345,7 +350,7 @@
         .hint {
             text-align: center;
             font-size: 11px;
-            color: #c0b0a0;
+            color: #5A6B5D;
             margin-top: 16px;
             display: flex;
             align-items: center;
@@ -355,7 +360,7 @@
 
         .divider {
             height: 1px;
-            background: linear-gradient(90deg, transparent, #e8ddd0, transparent);
+            background: linear-gradient(90deg, transparent, #C8DCC8, transparent);
             margin: 16px 0;
         }
 
@@ -456,6 +461,15 @@
                         <div class="rc-check"><i class="fa-solid fa-circle-check"></i> <span>Tanlandi</span></div>
                     </div>
 
+                    <div class="role-card" data-role="call_centre_admin" data-label-uz="Call Centre"
+                        data-label-uzcyrl="Call Centre" data-label-ru="Call Centre"
+                        onclick="selectRole(this)">
+                        <div class="rc-icon"><i class="fa-solid fa-headset"></i></div>
+                        <div class="rc-title" id="rt_callcentre">Call Centre</div>
+                        <div class="rc-desc" id="rd_callcentre">Mijozlar bilan ishlash</div>
+                        <div class="rc-check"><i class="fa-solid fa-circle-check"></i> <span>Tanlandi</span></div>
+                    </div>
+
                 </div>
             </div>
 
@@ -531,6 +545,7 @@
                 rt_seller: "Sotuvchi", rd_seller: "Sotuv & mahsulot",
                 rt_production: "Ishlab chiqarish", rd_production: "Retsept & mahsulot",
                 rt_branch: "Filial Admini", rd_branch: "O'z filiali",
+                rt_callcentre: "Call Centre", rd_callcentre: "Mijozlar bilan ishlash",
             },
             "uz-cyrl": {
                 lbl_role: "Ролни танланг",
@@ -549,6 +564,7 @@
                 rt_seller: "Сотувчи", rd_seller: "Сотув & маҳсулот",
                 rt_production: "Ишлаб чиқариш", rd_production: "Рецепт & маҳсулот",
                 rt_branch: "Филиал Админи", rd_branch: "Ўз филиали",
+                rt_callcentre: "Call Centre", rd_callcentre: "Мижозлар билан ишлаш",
             },
             ru: {
                 lbl_role: "Выберите роль",
@@ -567,6 +583,7 @@
                 rt_seller: "Продавец", rd_seller: "Продажи & товары",
                 rt_production: "Производство", rd_production: "Рецепты & продукты",
                 rt_branch: "Администратор филиала", rd_branch: "Свой филиал",
+                rt_callcentre: "Call Centre", rd_callcentre: "Работа с клиентами",
             }
         };
 

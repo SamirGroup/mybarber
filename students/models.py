@@ -1,4 +1,4 @@
-from django.db import models
+﻿from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Sum
@@ -75,7 +75,7 @@ class Student(models.Model):
         return today.year - b.year - ((today.month, today.day) < (b.month, b.day))
 
 
-# ── Documents ─────────────────────────────────────────────────────────
+# в”Ђв”Ђ Documents в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class DocumentType(models.Model):
     name = models.CharField(max_length=100, unique=True)  # Ma'lumotnoma, Tabel, Pasport nusxasi...
     is_required = models.BooleanField(default=False)
@@ -113,10 +113,10 @@ class StudentDocument(models.Model):
     notes = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.student} — {self.doc_type}"
+        return f"{self.student} вЂ” {self.doc_type}"
 
 
-# ── Schedule / Subjects ───────────────────────────────────────────────
+# в”Ђв”Ђ Schedule / Subjects в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class Subject(models.Model):
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=20, blank=True)
@@ -141,10 +141,10 @@ class Schedule(models.Model):
         ordering = ['day_of_week', 'start_time']
 
     def __str__(self):
-        return f"{self.classroom} | {self.get_day_of_week_display()} {self.start_time} — {self.subject}"
+        return f"{self.classroom} | {self.get_day_of_week_display()} {self.start_time} вЂ” {self.subject}"
 
 
-# ── Grades (Baholar) ──────────────────────────────────────────────────
+# в”Ђв”Ђ Grades (Baholar) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class Quarter(models.Model):
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='quarters')
     number = models.IntegerField()  # 1,2,3,4
@@ -156,7 +156,7 @@ class Quarter(models.Model):
         unique_together = ['academic_year', 'number']
 
     def __str__(self):
-        return f"{self.academic_year} — {self.number}-chorak"
+        return f"{self.academic_year} вЂ” {self.number}-chorak"
 
 
 class DailyGrade(models.Model):
@@ -171,7 +171,7 @@ class DailyGrade(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return f"{self.student} | {self.subject} | {self.date} — {self.grade}"
+        return f"{self.student} | {self.subject} | {self.date} вЂ” {self.grade}"
 
 
 class QuarterGrade(models.Model):
@@ -185,10 +185,10 @@ class QuarterGrade(models.Model):
         unique_together = ['student', 'subject', 'quarter']
 
     def __str__(self):
-        return f"{self.student} | {self.subject} | {self.quarter} — {self.grade}"
+        return f"{self.student} | {self.subject} | {self.quarter} вЂ” {self.grade}"
 
 
-# ── Attendance ────────────────────────────────────────────────────────
+# в”Ђв”Ђ Attendance в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class Attendance(models.Model):
     STATUS_CHOICES = [
         ('present', 'Keldi'),
@@ -208,10 +208,10 @@ class Attendance(models.Model):
         unique_together = ['student', 'date', 'subject']
 
     def __str__(self):
-        return f"{self.student} | {self.date} — {self.get_status_display()}"
+        return f"{self.student} | {self.date} вЂ” {self.get_status_display()}"
 
 
-# ── Homework ──────────────────────────────────────────────────────────
+# в”Ђв”Ђ Homework в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class Homework(models.Model):
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='homeworks')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
@@ -230,7 +230,7 @@ class Homework(models.Model):
         ordering = ['-due_date']
 
     def __str__(self):
-        return f"{self.classroom} | {self.subject} — {self.title}"
+        return f"{self.classroom} | {self.subject} вЂ” {self.title}"
 
 
 class HomeworkSubmission(models.Model):
@@ -260,7 +260,7 @@ class HomeworkSubmission(models.Model):
         return f"{self.student} | {self.homework} | {self.status}"
 
 
-# ── Finance ───────────────────────────────────────────────────────────
+# в”Ђв”Ђ Finance в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class StudentBalance(models.Model):
     """O'quvchi qarzdorligini avtomatik hisoblash"""
     student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='balance')
@@ -268,7 +268,7 @@ class StudentBalance(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.student} — Qarz: {self.total_debt} so'm"
+        return f"{self.student} вЂ” Qarz: {self.total_debt} so'm"
 
     def update_balance(self):
         """Qarzdorlikni qayta hisoblash"""
@@ -303,7 +303,7 @@ class MonthlyPayment(models.Model):
         ('overdue', 'Muddati o\'tgan'),
     ]
     
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='monthly_payments')
+    contract = models.ForeignKey('Contract', on_delete=models.CASCADE, related_name='monthly_payments')
     month = models.DateField(help_text="Qaysi oy uchun (YYYY-MM-01)")
     amount_due = models.DecimalField(max_digits=12, decimal_places=2)
     amount_paid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -317,7 +317,7 @@ class MonthlyPayment(models.Model):
         unique_together = ['contract', 'month']
     
     def __str__(self):
-        return f"{self.contract.student} | {self.month:%Y-%m} — {self.amount_due} so'm"
+        return f"{self.contract.student} | {self.month:%Y-%m} вЂ” {self.amount_due} so'm"
     
     def update_status(self):
         """Statusni yangilash"""
@@ -351,7 +351,7 @@ class Contract(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.contract_number} — {self.student}"
+        return f"{self.contract_number} вЂ” {self.student}"
 
     @property
     def effective_fee(self):
@@ -378,10 +378,10 @@ class Payment(models.Model):
         ordering = ['-payment_date']
 
     def __str__(self):
-        return f"{self.student} | {self.month_for} — {self.amount}"
+        return f"{self.student} | {self.month_for} вЂ” {self.amount}"
 
 
-# ── SMS Notification ──────────────────────────────────────────────────
+# в”Ђв”Ђ SMS Notification в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class SmsNotificationConfig(models.Model):
     """Har oyning qaysi kunida qarzdor ota-onalarga SMS jo'natilsin."""
     day_of_month = models.IntegerField(default=5, help_text="Har oyning necha-sida SMS jo'natilsin (1-28)")
@@ -394,7 +394,7 @@ class SmsNotificationConfig(models.Model):
         verbose_name = "SMS sozlamasi"
 
     def __str__(self):
-        return f"SMS — har oyning {self.day_of_month}-kuni"
+        return f"SMS вЂ” har oyning {self.day_of_month}-kuni"
 
 
 class SmsLog(models.Model):
@@ -412,10 +412,10 @@ class SmsLog(models.Model):
         ordering = ['-sent_at']
 
     def __str__(self):
-        return f"{self.parent} → {self.phone} | {self.sent_at.date()}"
+        return f"{self.parent} в†’ {self.phone} | {self.sent_at.date()}"
 
 
-# ── Internal Chat ─────────────────────────────────────────────────────
+# в”Ђв”Ђ Internal Chat в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class ChatGroup(models.Model):
     GROUP_TYPE_CHOICES = [
         ('classroom', 'Sinf guruhi'),
@@ -450,7 +450,7 @@ class ChatMessage(models.Model):
         ordering = ['sent_at']
 
     def __str__(self):
-        return f"{self.sender} → {self.group} | {self.sent_at:%Y-%m-%d %H:%M}"
+        return f"{self.sender} в†’ {self.group} | {self.sent_at:%Y-%m-%d %H:%M}"
 
 
 class ChatMessageRead(models.Model):
@@ -466,7 +466,7 @@ class ChatMessageRead(models.Model):
         return f"{self.user} read {self.message} at {self.read_at:%Y-%m-%d %H:%M}"
 
 
-# ── Student Transfer ──────────────────────────────────────────────────
+# в”Ђв”Ђ Student Transfer в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class StudentTransfer(models.Model):
     """O'quvchini boshqa sinfga ko'chirish yoki maktabdan chiqarish"""
     TRANSFER_TYPE = [

@@ -55,7 +55,7 @@
         <td><strong>{{ h.title }}</strong></td>
         <td>{{ h.description|truncatewords:10 }}</td>
         <td>{{ h.due_date|date:"d.m.Y" }}</td>
-        <td>{{ h.teacher|default:"—" }}</td>
+        <td>{% if h.teacher %}{{ h.teacher.get_full_name|default:h.teacher.username }}{% else %}Noma'lum{% endif %}</td>
         <td>
           {% if h.file %}
           <a href="{{ h.file.url }}" target="_blank"><i class="fa-solid fa-download"></i></a>

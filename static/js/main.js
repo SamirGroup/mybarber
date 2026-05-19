@@ -59,6 +59,48 @@
     });
 })();
 
+// Dropdown menular uchun funksiyalar
+(function() {
+    // Dropdown menuni ochish/yopish
+    window.toggleSubMenu = function(element) {
+        if (!element) return;
+        
+        const parent = element.parentElement;
+        const subMenu = parent.querySelector('.nav-sub');
+        const isExpanded = element.classList.contains('expanded');
+        
+        // Barcha dropdown'larni yopish
+        document.querySelectorAll('.nav-group > .nav-group__head').forEach(function(head) {
+            head.classList.remove('expanded');
+            const sub = head.parentElement.querySelector('.nav-sub');
+            if (sub) sub.classList.remove('open');
+        });
+        
+        // Agar ochiq bo'lsa, yopish, aksincha ochish
+        if (!isExpanded) {
+            element.classList.add('expanded');
+            if (subMenu) subMenu.classList.add('open');
+        }
+    };
+
+    // Active bo'lgan dropdown avtomatik ochilishi
+    function initActiveDropdowns() {
+        const activeHead = document.querySelector('.nav-group > .nav-group__head.active');
+        if (activeHead) {
+            activeHead.classList.add('expanded');
+            const subMenu = activeHead.parentElement.querySelector('.nav-sub');
+            if (subMenu) subMenu.classList.add('open');
+        }
+    }
+
+    // Sahifa yuklanganda va har qanday o'zgarishda
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initActiveDropdowns);
+    } else {
+        initActiveDropdowns();
+    }
+})();
+
 // ── Toast notifications (Django messages) ─────────────────────────────────
 (function () {
     var style = document.createElement('style');

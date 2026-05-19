@@ -1,1 +1,1 @@
-web: gunicorn bakery_erp.wsgi --log-file -
+web: gunicorn bakery_erp.wsgi --bind 0.0.0.0:$PORT

@@ -164,6 +164,6 @@ class ChatGroupAdmin(admin.ModelAdmin):
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
-    list_display = ['group', 'sender', 'sent_at', 'is_read_by_admin']
-    list_filter = ['sent_at', 'is_read_by_admin']
+    list_display = ['group', 'sender', 'sent_at', 'is_deleted']
+    list_filter = ['sent_at', 'is_deleted']
     search_fields = ['text']
