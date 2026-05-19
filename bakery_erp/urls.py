@@ -34,9 +34,6 @@ urlpatterns = [
     path('hr/', include('hr.urls')),
     path('enrollment/', include('enrollment.urls')),
     path('students/', include('students.urls')),
-<<<<<<< HEAD
     path('faceid/', include('faceid.urls')),
-=======
     path('callcenter/', include('callcenter.urls')),
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
