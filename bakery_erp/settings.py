@@ -37,11 +37,7 @@ ALLOWED_HOSTS = [
     '.railway.app',  # Barcha railway.app domenlariga ruxsat
 ]
 CSRF_TRUSTED_ORIGINS = [
-
-    'web-production-058b4.up.railway.app',
-
-    'https://web-production-058b4.up.railway.app/',
-
+    'https://web-production-058b4.up.railway.app',
     'https://*.railway.app',
 ]
 
