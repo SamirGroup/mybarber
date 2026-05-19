@@ -504,31 +504,6 @@ class MonthlyPayment(models.Model):
 
 
 
-class Contract(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='contracts')
-    contract_number = models.CharField(max_length=100, unique=True)
-    start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True)
-    monthly_fee = models.DecimalField(max_digits=12, decimal_places=2)
-    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    discount_reason = models.CharField(max_length=200, blank=True)
-    is_active = models.BooleanField(default=True)
-    notes = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.contract_number} вЂ” {self.student}"
-
-    @property
-    def effective_fee(self):
-        return self.monthly_fee * (1 - self.discount_percent / 100)
-
-
-
-
 class Payment(models.Model):
     PAYMENT_METHOD = [
         ('cash', 'Naqd'),
