@@ -1,4 +1,4 @@
-iha ydef user_roles(request):
+def user_roles(request):
     user = request.user
     if not user.is_authenticated:
         return {}
@@ -33,11 +33,8 @@ iha ydef user_roles(request):
         'is_production_mgr':  is_superadmin or 'production_manager' in groups,
         'is_enrollment':      is_superadmin or 'enrollment_agent'   in groups or 'enrollment_manager' in groups,
         'is_students':        is_superadmin or 'students_agent'     in groups or 'students_manager' in groups or 'enrollment_agent' in groups or 'enrollment_manager' in groups,
-<<<<<<< HEAD
         'is_callcentre':      is_superadmin or is_callcentre,
-=======
-        'is_cc_admin':        is_superadmin or 'callcenter_admin'   in groups or 'callcenter_supervisor' in groups,
+        'is_cc_admin':        is_superadmin or 'callcenter-admin'   in groups or 'callcenter-supervisor' in groups,
         'is_school_only':     is_school_only,
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
         'user_branch':        user_branch,
     }
