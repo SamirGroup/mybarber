@@ -25,11 +25,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-demo-only-change-in-produc
 
 #DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydа False qiling
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-<<<<<<< HEAD
+# <<<<<<< HEAD
 # DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ["*"]
-=======
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
+# ALLOWED_HOSTS = ["*"]
+# =======
+# >>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
@@ -37,11 +37,11 @@ ALLOWED_HOSTS = [
     '.railway.app',  # Barcha railway.app domenlariga ruxsat
 ]
 CSRF_TRUSTED_ORIGINS = [
-<<<<<<< HEAD
+# <<<<<<< HEAD
     'web-production-058b4.up.railway.app',
-=======
+# =======
     'https://web-production-058b4.up.railway.app/',
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
+# >>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
     'https://*.railway.app',
 ]
 
@@ -67,15 +67,8 @@ INSTALLED_APPS = [
     'hr',
     'enrollment',
     'students',
-<<<<<<< HEAD
     'faceid',
-    'rosetta',
-    'whitenoise.runserver_nostatic',
-    'whitenoise',
-=======
     'callcenter',
-    # 'rosetta',  # requires django-rosetta
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 ]
 
 MIDDLEWARE = [
@@ -176,14 +169,14 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-<<<<<<< HEAD
+
 # FACE ID davomat (maktab kirish / o'quvchilar / HR)
 FACEID_TOLERANCE = float(os.getenv('FACEID_TOLERANCE', '0.55'))
 FACEID_COOLDOWN_SECONDS = int(os.getenv('FACEID_COOLDOWN_SECONDS', '45'))
-=======
+
 # Internal API token for cron/celery tasks
 SMS_TASK_API_TOKEN = os.getenv('SMS_TASK_API_TOKEN', '')
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
+
 
 # Meta Webhook
 META_VERIFY_TOKEN = os.getenv('META_VERIFY_TOKEN', '')

@@ -1,4 +1,5 @@
-﻿from django.db import models
+﻿# -*- coding: utf-8 -*-
+from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Sum
@@ -252,9 +253,9 @@ class Schedule(models.Model):
         ordering = ['day_of_week', 'period__lesson_number', 'start_time']
 
     def __str__(self):
-<<<<<<< HEAD
+
         return f"{self.classroom} | {self.get_day_of_week_display()} {self.start_time} вЂ” {self.subject}"
-=======
+
         period_str = f"{self.period.lesson_number}-soat" if self.period else str(self.start_time)
         return f"{self.classroom} | {self.get_day_of_week_display()} {period_str} — {self.subject}"
 
@@ -265,7 +266,7 @@ class Schedule(models.Model):
     @property
     def effective_end(self):
         return self.period.end_time if self.period else self.end_time
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
+
 
 
 # в”Ђв”Ђ Grades (Baholar) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
@@ -384,10 +385,10 @@ class HomeworkSubmission(models.Model):
         return f"{self.student} | {self.homework} | {self.status}"
 
 
-<<<<<<< HEAD
+
 # в”Ђв”Ђ Finance в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-=======
-# ── Finance ───────────────────────────────────────────────────────────
+
+# -- Finance -----------------------------------------------------------
 class Contract(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='contracts')
     contract_number = models.CharField(max_length=100, unique=True)
@@ -431,7 +432,7 @@ class Contract(models.Model):
         return self.payments.select_related('received_by').order_by('-payment_date')
 
 
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
+
 class StudentBalance(models.Model):
     """O'quvchi qarzdorligini avtomatik hisoblash"""
     student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='balance')
@@ -502,7 +503,7 @@ class MonthlyPayment(models.Model):
         self.save()
 
 
-<<<<<<< HEAD
+
 class Contract(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='contracts')
     contract_number = models.CharField(max_length=100, unique=True)
@@ -526,8 +527,8 @@ class Contract(models.Model):
         return self.monthly_fee * (1 - self.discount_percent / 100)
 
 
-=======
->>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
+
+
 class Payment(models.Model):
     PAYMENT_METHOD = [
         ('cash', 'Naqd'),
@@ -675,7 +676,7 @@ class StudentTransfer(models.Model):
         return f"{self.student} | {self.get_transfer_type_display()} | {self.transfer_date}"
 
 
-# ── Online Payment Gateway ────────────────────────────────────────────
+# -- Online Payment Gateway --------------------------------------------
 class OnlinePayment(models.Model):
     """O'zbekiston to'lov tizimlari orqali kelgan to'lovlar"""
     PROVIDER_CHOICES = [
@@ -718,3 +719,4 @@ class OnlinePayment(models.Model):
 
     def __str__(self):
         return f"{self.provider} | {self.transaction_id} | {self.amount} | {self.status}"
+
