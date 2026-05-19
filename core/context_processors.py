@@ -1,4 +1,4 @@
-def user_roles(request):
+iha ydef user_roles(request):
     user = request.user
     if not user.is_authenticated:
         return {}
