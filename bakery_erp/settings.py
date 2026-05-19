@@ -24,8 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-demo-only-change-in-production-#8dh8hxh')
 
-#DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydР° False qiling
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'  # Hozircha True, keyin False qiling
 
 # DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # ALLOWED_HOSTS = ["*"]
