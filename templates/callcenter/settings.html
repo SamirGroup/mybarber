@@ -1,0 +1,75 @@
+{% extends 'callcenter/base.html' %}
+{% block title %}Sozlamalar{% endblock %}
+{% block page_title %}Tizim sozlamalari{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-xl-6">
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Lead biriktirish rejimi</h6>
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:13px;">Biriktirish usuli</label>
+          <select class="form-select form-select-sm" name="assign_mode">
+            <option value="round_robin" {% if cfg.assign_mode == 'round_robin' %}selected{% endif %}>Round Robin (avtomatik)</option>
+            <option value="manual" {% if cfg.assign_mode == 'manual' %}selected{% endif %}>Qo'lda (admin tomonidan)</option>
+          </select>
+        </div>
+        <hr>
+        <h6 class="fw-bold mb-3">Meta API sozlamalari</h6>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:12px;">Verify Token</label>
+          <input class="form-control form-control-sm" name="meta_verify_token" value="{{ cfg.meta_verify_token }}" placeholder="Webhook verify token">
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:12px;">Access Token</label>
+          <input class="form-control form-control-sm" name="meta_access_token" value="{{ cfg.meta_access_token }}" placeholder="Meta Graph API access token">
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size:12px;">App Secret</label>
+          <input class="form-control form-control-sm" name="meta_app_secret" value="{{ cfg.meta_app_secret }}" placeholder="Meta App Secret">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" style="font-size:12px;">Page ID</label>
+          <input class="form-control form-control-sm" name="meta_page_id" value="{{ cfg.meta_page_id }}" placeholder="Facebook Page ID">
+        </div>
+        <button class="btn btn-primary btn-sm">Saqlash</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-xl-6">
+    <div class="panel mb-3">
+      <h6 class="fw-bold mb-3"><i class="fa-solid fa-plug text-primary me-2"></i>Webhook URL</h6>
+      <p style="font-size:13px;" class="text-muted mb-2">Meta Business Manager da quyidagi URL ni kiriting:</p>
+      <div class="p-2 rounded" style="background:#f1f5f9; font-family:monospace; font-size:12px; word-break:break-all;">
+        {{ request.scheme }}://{{ request.get_host }}/callcenter/api/webhook/
+      </div>
+      <p class="text-muted mt-2 mb-0" style="font-size:12px;">Subscribed fields: <strong>leadgen</strong></p>
+    </div>
+
+    <div class="panel mb-3">
+      <h6 class="fw-bold mb-3"><i class="fa-solid fa-flask text-warning me-2"></i>Lead qo'lda olish (test)</h6>
+      <form method="post" action="{% url 'cc_api_fetch_lead' %}">
+        {% csrf_token %}
+        <div class="input-group input-group-sm">
+          <input class="form-control" name="lead_id" placeholder="Meta Lead ID">
+          <button class="btn btn-warning">Olish</button>
+        </div>
+        <small class="text-muted">Meta Graph API orqali lead ma'lumotlarini tortib oladi</small>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h6 class="fw-bold mb-3"><i class="fa-solid fa-info-circle text-info me-2"></i>Celery Tasks</h6>
+      <ul style="font-size:13px;" class="mb-0">
+        <li><code>send_callback_reminders</code> — har 15 daqiqada</li>
+        <li><code>send_not_called_reminders</code> — har kuni 09:00</li>
+        <li><code>alert_untouched_leads</code> — har soatda</li>
+      </ul>
+      <p class="text-muted mt-2 mb-0" style="font-size:12px;">Celery worker va beat ishga tushirilgan bo'lishi kerak.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

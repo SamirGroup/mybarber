@@ -4,7 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>{% block title %}My School CRM{% endblock %}</title>
+=======
+    <title>My School — CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
@@ -14,8 +21,13 @@
     <div class="app-container">
         <aside class="sidebar" id="appSidebar">
             <div class="sidebar-header">
+<<<<<<< HEAD
                 <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                 <h2>My <span class="highlight">School</span></h2>
+=======
+                <i class="fa-solid fa-school logo-icon"> </i>
+                <h2>My<span class="highlight">School</span></h2>
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
                 <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -51,7 +63,11 @@
                 {% endif %}
 
                 {% if is_superadmin %}
+<<<<<<< HEAD
                 <!-- Boshqa menular faqat superadmin uchun -->
+=======
+                <!-- Dashboard -->
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
                 <li>
                     <a href="/" class="{% if request.path == '/' %}active{% endif %}">
                         <i class="fa-solid fa-chart-pie"></i>
@@ -59,6 +75,7 @@
                     </a>
                 </li>
 
+<<<<<<< HEAD
                 <!-- ISHLAB CHIQARISH (Dropdown) -->
                 <li class="nav-group">
                     <div class="nav-group__head {% if '/production/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
@@ -149,11 +166,55 @@
                     <a href="/admin-users/" class="{% if '/admin-users/' in request.path %}active{% endif %}">
                         <i class="fa-solid fa-user-gear"></i>
                         <span>Foydalanuvchilar</span>
+=======
+                <!-- Qabul bo'limi - Dropdown -->
+                <li class="has-submenu {% if '/enrollment/' in request.path %}active{% endif %}">
+                    <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>Qabul bo'limi</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
                     </a>
+                    <ul class="submenu" style="{% if '/enrollment/' in request.path %}display:block;{% endif %}">
+                        <li><a href="/enrollment/" class="{% if request.path == '/enrollment/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}"><i class="fa-solid fa-user-plus"></i> Leadlar</a></li>
+                        <li><a href="/enrollment/applications/" class="{% if '/enrollment/applications' in request.path %}active{% endif %}"><i class="fa-solid fa-file-lines"></i> Arizalar</a></li>
+                        <li><a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}"><i class="fa-solid fa-phone-volume"></i> Call Centre</a></li>
+                        <li><a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}"><i class="fa-solid fa-chart-bar"></i> Hisobotlar</a></li>
+                    </ul>
+                </li>
+
+                <!-- O'quvchilar bo'limi - Dropdown -->
+                <li class="has-submenu {% if '/students/' in request.path %}active{% endif %}">
+                    <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        <span>O'quvchilar</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </a>
+                    <ul class="submenu" style="{% if '/students/' in request.path %}display:block;{% endif %}">
+                        <li><a href="/students/" class="{% if request.path == '/students/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="/students/list/" class="{% if '/students/list' in request.path %}active{% endif %}"><i class="fa-solid fa-list"></i> O'quvchilar ro'yxati</a></li>
+                        <li><a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}"><i class="fa-solid fa-chalkboard"></i> Sinflar</a></li>
+                    </ul>
+                </li>
+
+                <!-- Ishlab chiqarish - Dropdown -->
+                <li class="has-submenu {% if '/production/' in request.path %}active{% endif %}">
+                    <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                        <i class="fa-solid fa-industry"></i>
+                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
+                    </a>
+                    <ul class="submenu" style="{% if '/production/' in request.path %}display:block;{% endif %}">
+                        <li><a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="/production/manage/" class="{% if '/production/manage' in request.path and 'tab=tab-categories' not in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-box-open"></i> Mahsulotlar</a></li>
+                        <li><a href="/production/manage/?tab=tab-categories" class="{% if 'tab=tab-categories' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-folder"></i> Kategoriyalar</a></li>
+                    </ul>
                 </li>
                 {% endif %}
 
                 {% if is_seller and not is_superadmin %}
+<<<<<<< HEAD
                 <li class="nav-group">
                     <div class="nav-group__head {% if '/sales/' in request.path %}active{% endif %}" onclick="toggleSubMenu(this)">
                         <span style="display:flex;align-items:center;gap:12px;">
@@ -166,13 +227,148 @@
                         <li><a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}"><i class="fa-solid fa-cash-register"></i><span>POS kassa</span></a></li>
                     </ul>
                 </li>
+=======
+                <!-- Sotuv -->
+                <li>
+                    <a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-cash-register"></i>
+                        <span data-i18n="nav_sales">Sotuv</span>
+                    </a>
+                </li>
+
+                <!-- Ishlab chiqarish - Dropdown -->
+                <li class="has-submenu {% if '/production/' in request.path %}active{% endif %}">
+                    <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                        <i class="fa-solid fa-industry"></i>
+                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </a>
+                    <ul class="submenu" style="{% if '/production/' in request.path %}display:block;{% endif %}">
+                        <li><a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="/production/manage/" class="{% if '/production/manage' in request.path and 'tab=tab-categories' not in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-box-open"></i> Mahsulotlar</a></li>
+                        <li><a href="/production/manage/?tab=tab-categories" class="{% if 'tab=tab-categories' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-folder"></i> Kategoriyalar</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if is_production_mgr and not is_superadmin %}
+                <!-- Ishlab chiqarish - Dropdown -->
+                <li class="has-submenu {% if '/production/' in request.path %}active{% endif %}">
+                    <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                        <i class="fa-solid fa-industry"></i>
+                        <span data-i18n="nav_production">Ishlab chiqarish</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </a>
+                    <ul class="submenu" style="{% if '/production/' in request.path %}display:block;{% endif %}">
+                        <li><a href="/production/" class="{% if request.path == '/production/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="/production/manage/" class="{% if '/production/manage' in request.path and 'tab=tab-categories' not in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-box-open"></i> Mahsulotlar</a></li>
+                        <li><a href="/production/manage/?tab=tab-categories" class="{% if 'tab=tab-categories' in request.get_full_path %}active{% endif %}"><i class="fa-solid fa-folder"></i> Kategoriyalar</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if is_accountant and not is_superadmin %}
+                <!-- Buxgalteriya -->
+                <li>
+                    <a href="/accounting/" class="{% if '/accounting/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span data-i18n="nav_accounting">Buxgalteriya</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_students and not is_superadmin %}
+                <!-- O'quvchilar - Dropdown -->
+                <li class="has-submenu {% if '/students/' in request.path %}active{% endif %}">
+                    <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        <span>O'quvchilar</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </a>
+                    <ul class="submenu" style="{% if '/students/' in request.path %}display:block;{% endif %}">
+                        <li><a href="/students/" class="{% if request.path == '/students/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="/students/list/" class="{% if '/students/list' in request.path %}active{% endif %}"><i class="fa-solid fa-list"></i> O'quvchilar ro'yxati</a></li>
+                        <li><a href="/students/classrooms/" class="{% if '/students/classrooms' in request.path %}active{% endif %}"><i class="fa-solid fa-chalkboard"></i> Sinflar</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if is_enrollment and not is_superadmin %}
+                <!-- Qabul bo'limi - Dropdown -->
+                <li class="has-submenu {% if '/enrollment/' in request.path %}active{% endif %}">
+                    <a href="#" class="submenu-toggle" onclick="toggleSubmenu(event, this)">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>Qabul bo'limi</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </a>
+                    <ul class="submenu" style="{% if '/enrollment/' in request.path %}display:block;{% endif %}">
+                        <li><a href="/enrollment/" class="{% if request.path == '/enrollment/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="/enrollment/leads/" class="{% if '/enrollment/leads' in request.path %}active{% endif %}"><i class="fa-solid fa-user-plus"></i> Leadlar</a></li>
+                        <li><a href="/enrollment/applications/" class="{% if '/enrollment/applications' in request.path %}active{% endif %}"><i class="fa-solid fa-file-lines"></i> Arizalar</a></li>
+                        <li><a href="/enrollment/call-centre/" class="{% if '/enrollment/call-centre' in request.path %}active{% endif %}"><i class="fa-solid fa-phone-volume"></i> Call Centre</a></li>
+                        <li><a href="/enrollment/reports/" class="{% if '/enrollment/reports' in request.path %}active{% endif %}"><i class="fa-solid fa-chart-bar"></i> Hisobotlar</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if is_hr and not is_superadmin %}
+                <!-- HR Bo'limi -->
+                <li>
+                    <a href="/hr/" class="{% if '/hr/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-users"></i>
+                        <span data-i18n="nav_hr">HR Bo'limi</span>
+                    </a>
+                </li>
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
                 {% endif %}
 
                 {% if is_branch_admin and not is_superadmin %}
                 <li>
                     <a href="/branches/" class="{% if '/branches/' in request.path %}active{% endif %}">
                         <i class="fa-solid fa-store"></i>
+<<<<<<< HEAD
                         <span>{% if user_branch %}{{ user_branch.name }}{% else %}Filiallar{% endif %}</span>
+=======
+                        <span>{% if user_branch %}{{ user_branch.name }}{% else %}<span
+                                data-i18n="nav_branches">Filiallar</span>{% endif %}</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if is_superadmin %}
+                <!-- Sotuv -->
+                <li>
+                    <a href="/sales/" class="{% if '/sales/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-cash-register"></i>
+                        <span data-i18n="nav_sales">Sotuv</span>
+                    </a>
+                </li>
+
+                <!-- Filiallar -->
+                <li>
+                    <a href="/branches/" class="{% if '/branches/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-store"></i>
+                        <span data-i18n="nav_branches">Filiallar</span>
+                    </a>
+                </li>
+
+                <!-- Buxgalteriya: superadmin uchun dropdown -->
+                {% include 'includes/accounting_sidebar_block.html' %}
+
+                <!-- HR Bo'limi -->
+                <li>
+                    <a href="/hr/" class="{% if '/hr/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-users"></i>
+                        <span data-i18n="nav_hr">HR Bo'limi</span>
+                    </a>
+                </li>
+
+                <!-- Foydalanuvchilar -->
+                <li>
+                    <a href="/admin-users/" class="{% if '/admin-users/' in request.path %}active{% endif %}">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <span data-i18n="nav_admin">Foydalanuvchilar</span>
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
                     </a>
                 </li>
                 {% endif %}

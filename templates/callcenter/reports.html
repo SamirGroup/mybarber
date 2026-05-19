@@ -1,0 +1,122 @@
+{% extends 'callcenter/base.html' %}
+{% block title %}Hisobotlar{% endblock %}
+{% block page_title %}Hisobotlar{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="panel mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-2"><input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}"></div>
+    <div class="col-md-2"><input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}"></div>
+    {% if is_cc_admin %}
+    <div class="col-md-2">
+      <select name="operator" class="form-select form-select-sm">
+        <option value="">Barcha operatorlar</option>
+        {% for op in operators %}<option value="{{ op.pk }}" {% if operator_filter == op.pk|stringformat:"s" %}selected{% endif %}>{{ op.username }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-md-2"><input type="text" name="region" class="form-control form-control-sm" placeholder="Hudud" value="{{ region_filter }}"></div>
+    <div class="col-md-2"><input type="text" name="campaign" class="form-control form-control-sm" placeholder="Kampaniya" value="{{ campaign_filter }}"></div>
+    <div class="col-md-1"><button class="btn btn-primary btn-sm w-100"><i class="fa-solid fa-search"></i></button></div>
+    <div class="col-md-1">
+      <a href="{% url 'cc_export_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success btn-sm w-100">
+        <i class="fa-solid fa-file-excel"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- KPI -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="kpi-card"><div class="kpi-label">Jami Leadlar</div><div class="kpi-value">{{ total }}</div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card"><div class="kpi-label">Qabul qilindi</div><div class="kpi-value text-success">{{ received }}</div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="kpi-card"><div class="kpi-label">Konversiya</div><div class="kpi-value text-primary">{{ conversion }}%</div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Daily Chart -->
+  <div class="col-xl-8">
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Kunlik lead oqimi</h6>
+      <canvas id="dailyChart" height="100"></canvas>
+    </div>
+  </div>
+  <!-- Status Pie -->
+  <div class="col-xl-4">
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Status taqsimoti</h6>
+      <canvas id="statusPie" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+{% if is_cc_admin %}
+<!-- Operator Stats -->
+<div class="panel">
+  <h6 class="fw-bold mb-3">Operator statistikasi</h6>
+  <div class="table-responsive">
+    <table class="table table-hover" style="font-size:13px;">
+      <thead class="table-light">
+        <tr><th>Operator</th><th>Jami</th><th>Qo'ngiroq qilindi</th><th>Qabul qilindi</th><th>Konversiya</th></tr>
+      </thead>
+      <tbody>
+        {% for op in operator_stats %}
+        <tr>
+          <td class="fw-semibold">{{ op.assigned_operator__username|default:"—" }}</td>
+          <td>{{ op.total }}</td>
+          <td>{{ op.called }}</td>
+          <td>{{ op.received }}</td>
+          <td>
+            {% if op.total %}
+            <div class="d-flex align-items-center gap-2">
+              <div style="flex:1;height:6px;background:#e2e8f0;border-radius:999px;">
+                <div style="width:{% widthratio op.received op.total 100 %}%;height:100%;background:#08543D;border-radius:999px;"></div>
+              </div>
+              <span>{% widthratio op.received op.total 100 %}%</span>
+            </div>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const dailyLabels = {{ daily_labels|safe }};
+const dailyData = {{ daily_data|safe }};
+new Chart(document.getElementById('dailyChart'), {
+  type: 'bar',
+  data: {
+    labels: dailyLabels,
+    datasets: [{ label: 'Leadlar', data: dailyData, backgroundColor: 'rgba(8,84,61,0.75)', borderRadius: 6 }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+const statusDist = {{ status_dist|safe }};
+if (statusDist.length) {
+  new Chart(document.getElementById('statusPie'), {
+    type: 'doughnut',
+    data: {
+      labels: statusDist.map(s => s.current_status__name || "Noma'lum"),
+      datasets: [{ data: statusDist.map(s => s.cnt), backgroundColor: ['#08543D','#0a6b4f','#0d8f69','#4dd9a8','#b8d4c8','#054d37','#c8ddd6','#3d6b57'], borderWidth: 2 }]
+    },
+    options: { responsive: true, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+}
+</script>
+{% endblock %}

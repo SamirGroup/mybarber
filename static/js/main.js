@@ -196,3 +196,21 @@
     window.addEventListener('hashchange', syncAccountingSidebarHighlight);
     document.addEventListener('DOMContentLoaded', init);
 })();
+
+// ── Dropdown Submenu Toggle ──────────────────────────────────
+function toggleSubmenu(event, element) {
+    event.preventDefault();
+    event.stopPropagation();
+    var parent = element.closest('.has-submenu');
+    if (!parent) return;
+    var submenu = parent.querySelector('.submenu');
+    if (!submenu) return;
+    var isOpen = parent.classList.contains('open');
+    if (isOpen) {
+        parent.classList.remove('open');
+        submenu.style.display = 'none';
+    } else {
+        parent.classList.add('open');
+        submenu.style.display = 'flex';
+    }
+}

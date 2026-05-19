@@ -1,0 +1,90 @@
+{% extends 'callcenter/base.html' %}
+{% block title %}Foydalanuvchilar{% endblock %}
+{% block page_title %}Foydalanuvchilar{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-xl-4">
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Yangi foydalanuvchi</h6>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="mb-2">
+          <input class="form-control form-control-sm" name="full_name" placeholder="Ism Familiya" required>
+        </div>
+        <div class="mb-2">
+          <input class="form-control form-control-sm" name="username" placeholder="Username" required>
+        </div>
+        <div class="mb-2">
+          <input class="form-control form-control-sm" type="password" name="password" placeholder="Parol" required>
+        </div>
+        <div class="mb-2">
+          <input class="form-control form-control-sm" name="phone" placeholder="Telefon">
+        </div>
+        <div class="mb-3">
+          <select class="form-select form-select-sm" name="role">
+            <option value="callcenter_operator">Operator</option>
+            <option value="callcenter_supervisor">Supervisor</option>
+            <option value="callcenter_admin">Admin</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm w-100">Yaratish</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-xl-8">
+    <div class="panel">
+      <h6 class="fw-bold mb-3">Foydalanuvchilar ({{ users.count }})</h6>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" style="font-size:13px;">
+          <thead class="table-light">
+            <tr><th>Username</th><th>Ism</th><th>Rol</th><th>Holat</th><th>Amal</th></tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td class="fw-semibold">{{ u.username }}</td>
+              <td>{{ u.get_full_name|default:"—" }}</td>
+              <td>
+                {% for g in u.groups.all %}
+                <span class="badge bg-secondary" style="font-size:10px;">{{ g.name }}</span>
+                {% endfor %}
+              </td>
+              <td>
+                {% if u.is_active %}
+                <span class="badge bg-success">Faol</span>
+                {% else %}
+                <span class="badge bg-danger">Nofaol</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="post" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="toggle_active">
+                  <input type="hidden" name="user_id" value="{{ u.pk }}">
+                  <button class="btn btn-sm btn-outline-warning py-0 px-2" {% if u == request.user %}disabled{% endif %}>
+                    {% if u.is_active %}O'chirish{% else %}Faollashtirish{% endif %}
+                  </button>
+                </form>
+                <form method="post" class="d-inline" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="user_id" value="{{ u.pk }}">
+                  <button class="btn btn-sm btn-outline-danger py-0 px-2" {% if u == request.user %}disabled{% endif %}>
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-3">Foydalanuvchi yo'q</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

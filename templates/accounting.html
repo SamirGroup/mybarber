@@ -8,20 +8,20 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
     .content-wrapper {
-        --paper: #fffdf7;
-        --ink: #2f2a25;
-        --muted-ink: #746a60;
-        --warm-1: #f2dcc2;
-        --warm-2: #d4a373;
-        --olive-1: #d7debc;
-        --olive-2: #a6b07f;
-        --line-soft: rgba(111, 89, 65, 0.15);
+        --paper: #f4faf7;
+        --ink: #0d2b20;
+        --muted-ink: #3d6b57;
+        --warm-1: #c8ddd6;
+        --warm-2: #08543D;
+        --olive-1: #b8d4c8;
+        --olive-2: #0a6b4f;
+        --line-soft: rgba(8, 84, 61, 0.15);
         --accent-blue: #2c6b8a;
         font-family: 'Manrope', sans-serif;
         background:
-            radial-gradient(1100px 460px at -2% -5%, rgba(212, 163, 115, 0.2), transparent),
-            radial-gradient(900px 420px at 101% 12%, rgba(167, 176, 127, 0.18), transparent),
-            linear-gradient(180deg, #fffdf7 0%, #f9f8f3 100%);
+            radial-gradient(1100px 460px at -2% -5%, rgba(8, 84, 61, 0.12), transparent),
+            radial-gradient(900px 420px at 101% 12%, rgba(10, 107, 79, 0.10), transparent),
+            linear-gradient(180deg, #f4faf7 0%, #eef6f2 100%);
     }
 
     .accounting-shell {
@@ -66,7 +66,7 @@
         width: 200px;
         height: 200px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(212, 163, 115, 0.25), transparent 70%);
+        background: radial-gradient(circle, rgba(8, 84, 61, 0.18), transparent 70%);
         pointer-events: none;
     }
 
@@ -112,7 +112,7 @@
         position: absolute;
         top: 0; left: 0; right: 0;
         height: 3px;
-        background: linear-gradient(90deg, var(--warm-2), var(--olive-2));
+        background: linear-gradient(90deg, #08543D, #0a6b4f);
         opacity: 0.85;
     }
     .overview-kpi-card.is-negative::before {
@@ -143,7 +143,7 @@
         position: absolute;
         top: 0; left: 0; right: 0;
         height: 3px;
-        background: linear-gradient(90deg, var(--warm-2), var(--olive-2));
+        background: linear-gradient(90deg, #08543D, #0a6b4f);
         opacity: 0.85;
     }
     .kpi-title {
@@ -160,7 +160,7 @@
         color: var(--ink);
         font-weight: 800;
     }
-    .kpi-icon { float: right; font-size: 22px; opacity: 0.18; color: var(--warm-2); }
+    .kpi-icon { float: right; font-size: 22px; opacity: 0.18; color: #08543D; }
 
     .tab-pane {
         grid-column: span 12;
@@ -224,14 +224,14 @@
         font-size: 14px;
         transition: border-color 0.2s;
     }
-    .form-control:focus { outline: none; border-color: var(--warm-2); }
+    .form-control:focus { outline: none; border-color: #08543D; }
 
     .btn-submit {
         width: 100%;
         padding: 13px;
         border-radius: 12px;
         border: none;
-        background: linear-gradient(135deg, var(--warm-2), #c49363);
+        background: linear-gradient(135deg, #08543D, #054d37);
         color: white;
         font-weight: 800;
         font-family: 'Lexend', sans-serif;
@@ -239,7 +239,7 @@
         transition: transform 0.2s, box-shadow 0.2s;
         font-size: 14px;
     }
-    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(212, 163, 115, 0.35); }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(8, 84, 61, 0.28); }
 
     .btn-accent { background: linear-gradient(135deg, var(--accent-blue), #1e4d66); }
     .btn-success { background: linear-gradient(135deg, #2d8a5c, #1f6b47); }
@@ -262,7 +262,7 @@
         color: var(--ink);
         vertical-align: top;
     }
-    .table-premium tr:hover td { background: rgba(212, 163, 115, 0.04); }
+    .table-premium tr:hover td { background: rgba(8, 84, 61, 0.03); }
     .num { font-family: 'Lexend', sans-serif; font-variant-numeric: tabular-nums; text-align: right; }
 
     .badge {
@@ -671,14 +671,14 @@
     }
     .acc-nav-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 14px 32px rgba(78, 60, 41, 0.13);
-        border-color: var(--warm-2);
+        box-shadow: 0 14px 32px rgba(8, 84, 61, 0.12);
+        border-color: #08543D;
         text-decoration: none;
         color: var(--ink);
     }
     .acc-nav-card i {
         font-size: 28px;
-        color: var(--warm-2);
+        color: #08543D;
         opacity: 0.9;
     }
     .acc-nav-card span {
@@ -740,10 +740,10 @@
         background: rgba(212, 163, 115, 0.08);
     }
     .acc-filter-btn.is-active {
-        background: linear-gradient(135deg, var(--warm-2), #c49363);
-        border-color: var(--warm-2);
+        background: linear-gradient(135deg, #08543D, #054d37);
+        border-color: #08543D;
         color: #fff;
-        box-shadow: 0 6px 18px rgba(212, 163, 115, 0.28);
+        box-shadow: 0 6px 18px rgba(8, 84, 61, 0.22);
     }
     .acc-filter-dates {
         display: flex;
@@ -791,8 +791,8 @@
         font-family: 'Manrope', sans-serif;
     }
     .flatpickr-months .flatpickr-month {
-        background: linear-gradient(135deg, #f5e6d3, #fff8ef);
-        color: #3a312a;
+        background: linear-gradient(135deg, #e6f4ef, #f0faf7);
+        color: #08543D;
     }
     .flatpickr-current-month {
         font-family: 'Lexend', sans-serif;
@@ -813,15 +813,15 @@
     .flatpickr-day.selected,
     .flatpickr-day.startRange,
     .flatpickr-day.endRange {
-        background: linear-gradient(135deg, #d4a373, #c39162);
-        border-color: #c39162;
+        background: linear-gradient(135deg, #08543D, #054d37);
+        border-color: #054d37;
     }
     .flatpickr-day.today {
-        border-color: #d4a373;
+        border-color: #08543D;
     }
     .flatpickr-day:hover {
-        background: rgba(212, 163, 115, 0.16);
-        border-color: rgba(212, 163, 115, 0.22);
+        background: rgba(8, 84, 61, 0.12);
+        border-color: rgba(8, 84, 61, 0.18);
     }
     .acc-filter-apply {
         width: auto;
@@ -896,20 +896,20 @@
 
     <form method="get" class="panel acc-filter-panel">
         <div class="acc-filter-group">
-            <label class="acc-filter-label">Preset oralig'lar</label>
+            <label class="acc-filter-label">Tezkor oraliq</label>
             <div class="acc-preset-grid">
-                <button type="submit" name="preset" value="today" class="acc-filter-btn{% if period == 'today' %} is-active{% endif %}">Today</button>
-                <button type="submit" name="preset" value="yesterday" class="acc-filter-btn{% if period == 'yesterday' %} is-active{% endif %}">Yesterday</button>
-                <button type="submit" name="preset" value="today_yesterday" class="acc-filter-btn{% if period == 'today_yesterday' %} is-active{% endif %}">Today & yesterday</button>
-                <button type="submit" name="preset" value="last_7" class="acc-filter-btn{% if period == 'last_7' %} is-active{% endif %}">Last 7 days</button>
-                <button type="submit" name="preset" value="last_14" class="acc-filter-btn{% if period == 'last_14' %} is-active{% endif %}">Last 14 days</button>
-                <button type="submit" name="preset" value="last_28" class="acc-filter-btn{% if period == 'last_28' %} is-active{% endif %}">Last 28 days</button>
-                <button type="submit" name="preset" value="last_30" class="acc-filter-btn{% if period == 'last_30' %} is-active{% endif %}">Last 30 days</button>
-                <button type="submit" name="preset" value="this_week" class="acc-filter-btn{% if period == 'this_week' %} is-active{% endif %}">This week</button>
-                <button type="submit" name="preset" value="last_week" class="acc-filter-btn{% if period == 'last_week' %} is-active{% endif %}">Last week</button>
-                <button type="submit" name="preset" value="this_month" class="acc-filter-btn{% if period == 'this_month' %} is-active{% endif %}">This month</button>
-                <button type="submit" name="preset" value="last_month" class="acc-filter-btn{% if period == 'last_month' %} is-active{% endif %}">Last month</button>
-                <button type="submit" name="preset" value="maximum" class="acc-filter-btn{% if period == 'maximum' %} is-active{% endif %}">Maximum</button>
+                <button type="submit" name="preset" value="today" class="acc-filter-btn{% if period == 'today' %} is-active{% endif %}">Bugun</button>
+                <button type="submit" name="preset" value="yesterday" class="acc-filter-btn{% if period == 'yesterday' %} is-active{% endif %}">Kecha</button>
+                <button type="submit" name="preset" value="today_yesterday" class="acc-filter-btn{% if period == 'today_yesterday' %} is-active{% endif %}">Bugun &amp; kecha</button>
+                <button type="submit" name="preset" value="last_7" class="acc-filter-btn{% if period == 'last_7' %} is-active{% endif %}">So'nggi 7 kun</button>
+                <button type="submit" name="preset" value="last_14" class="acc-filter-btn{% if period == 'last_14' %} is-active{% endif %}">So'nggi 14 kun</button>
+                <button type="submit" name="preset" value="last_28" class="acc-filter-btn{% if period == 'last_28' %} is-active{% endif %}">So'nggi 28 kun</button>
+                <button type="submit" name="preset" value="last_30" class="acc-filter-btn{% if period == 'last_30' %} is-active{% endif %}">So'nggi 30 kun</button>
+                <button type="submit" name="preset" value="this_week" class="acc-filter-btn{% if period == 'this_week' %} is-active{% endif %}">Joriy hafta</button>
+                <button type="submit" name="preset" value="last_week" class="acc-filter-btn{% if period == 'last_week' %} is-active{% endif %}">O'tgan hafta</button>
+                <button type="submit" name="preset" value="this_month" class="acc-filter-btn{% if period == 'this_month' %} is-active{% endif %}">Joriy oy</button>
+                <button type="submit" name="preset" value="last_month" class="acc-filter-btn{% if period == 'last_month' %} is-active{% endif %}">O'tgan oy</button>
+                <button type="submit" name="preset" value="maximum" class="acc-filter-btn{% if period == 'maximum' %} is-active{% endif %}">Hammasi</button>
             </div>
         </div>
         <div class="acc-filter-group">
@@ -924,7 +924,7 @@
                     <i class="fa-solid fa-calendar-days"></i>
                     <input type="text" name="date_to" value="{{ date_to|date:'Y-m-d' }}" class="form-control acc-date-input js-acc-date" autocomplete="off">
                 </div>
-                <button type="submit" name="preset" value="custom" class="btn-submit acc-filter-apply">Custom qo'llash</button>
+                <button type="submit" name="preset" value="custom" class="btn-submit acc-filter-apply">Qo'llash</button>
             </div>
         </div>
         <div class="acc-filter-range-note">
@@ -942,6 +942,11 @@
 
     {% if not is_superadmin %}
     <nav class="acc-nav-grid" aria-label="Buxgalteriya bo'limlari">
+        <a href="#pane-overview" class="acc-nav-card" data-acc-tab="overview">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Umumiy</span>
+            <small>Moliyaviy ko'rsatkichlar</small>
+        </a>
         <a href="#cash" class="acc-nav-card" data-acc-tab="cash">
             <i class="fa-solid fa-money-bill-wave"></i>
             <span>Kassa</span>
@@ -961,6 +966,11 @@
             <i class="fa-solid fa-pen-to-square"></i>
             <span>Qo'lda jurnal</span>
             <small>Qo'lda yozuv kiritish</small>
+        </a>
+        <a href="#students" class="acc-nav-card" data-acc-tab="students">
+            <i class="fa-solid fa-users-graduate"></i>
+            <span>O'quvchilar</span>
+            <small>Shartnomalar va to'lovlar</small>
         </a>
         <a href="#integration" class="acc-nav-card" data-acc-tab="integration">
             <i class="fa-solid fa-plug"></i>
@@ -1331,6 +1341,76 @@
         </article>
     </section>
 
+    <!-- ——— O'QUVCHILAR ——— -->
+    <section id="pane-students" class="tab-pane">
+        <div class="panel" style="grid-column: span 12;">
+            <div class="section-title">
+                <i class="fa-solid fa-users-graduate"></i> O'quvchilar bo'yicha to'lovlar
+            </div>
+            <p class="text-muted mb-4">
+                Barcha o'quvchilar bo'yicha to'lovlar, shartnomalar va qarzdorlik holatini ko'ring.
+            </p>
+            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <a href="{% url 'students_payments_report' %}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-eye me-2"></i>To'liq hisobotni ko'rish
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-premium">
+                    <thead>
+                        <tr>
+                            <th>O'quvchi</th>
+                            <th>Shartnoma</th>
+                            <th>Jami to'lov</th>
+                            <th>Kerakli summa</th>
+                            <th>Qarzdorlik</th>
+                            <th>Oxirgi to'lov</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in students_summary|slice:":10" %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.student.full_name }}</strong>
+                                {% if item.debt > 0 %}
+                                <span class="badge bg-danger ms-1">Qarz</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.contract_count }}</td>
+                            <td class="text-success">{{ item.total_paid|floatformat:0 }}</td>
+                            <td>{{ item.total_fee|floatformat:0 }}</td>
+                            <td class="{% if item.debt > 0 %}text-danger fw-bold{% endif %}">
+                                {% if item.debt > 0 %}{{ item.debt|floatformat:0 }}{% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% with last_payment=item.student.payments.first %}
+                                {% if last_payment %}{{ last_payment.payment_date|date:"d.m.Y" }}{% else %}—{% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Ma'lumot topilmadi
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'students_payments_report' %}" class="btn btn-outline-primary">
+                    Barcha o'quvchilar (<strong>{{ students_summary|length }}</strong>) →
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- ——— INTEGRATION ——— -->
     <section id="pane-integration" class="tab-pane">
         <article class="panel half-panel">
@@ -1426,7 +1506,7 @@
 {% block extra_scripts %}
 <script>
 (function () {
-    var ACC_IDS = ['overview', 'cash', 'ledger', 'balance', 'coa', 'manual', 'integration', 'settings'];
+    var ACC_IDS = ['overview', 'cash', 'ledger', 'balance', 'coa', 'manual', 'students', 'integration', 'settings'];
     var chartsInited = false;
 
     function currentPanelId() {

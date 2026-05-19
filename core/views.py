@@ -155,9 +155,15 @@ def dashboard(request):
         if 'enrollment_agent' in groups or 'enrollment_manager' in groups:
             return redirect('enrollment_dashboard')
         if 'students_agent' in groups or 'students_manager' in groups:
+<<<<<<< HEAD
             return redirect('students_dashboard')
         if 'call_centre_admin' in groups:
             return redirect('enrollment_call_centre')
+=======
+            return redirect('/school/')
+        if groups & {'callcenter_operator', 'callcenter_supervisor', 'callcenter_admin'}:
+            return redirect('cc_dashboard')
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
         # Unknown role — show a plain access-denied page
         return render(request, 'no_access.html')
 

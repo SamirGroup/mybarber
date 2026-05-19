@@ -5,7 +5,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Kirish | My School CRM</title>
+=======
+    <title>Kirish | My School ERP (CRM) </title>
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -452,7 +456,7 @@
                         <div class="rc-check"><i class="fa-solid fa-circle-check"></i> <span>Tanlandi</span></div>
                     </div>
 
-                    <div class="role-card" data-role="branch_admin" data-label-uz="Filial Admini"
+<div class="role-card" data-role="branch_admin" data-label-uz="Filial Admini"
                         data-label-uzcyrl="Филиал Админи" data-label-ru="Администратор филиала"
                         onclick="selectRole(this)">
                         <div class="rc-icon"><i class="fa-solid fa-store"></i></div>
@@ -461,12 +465,20 @@
                         <div class="rc-check"><i class="fa-solid fa-circle-check"></i> <span>Tanlandi</span></div>
                     </div>
 
+<<<<<<< HEAD
                     <div class="role-card" data-role="call_centre_admin" data-label-uz="Call Centre"
                         data-label-uzcyrl="Call Centre" data-label-ru="Call Centre"
                         onclick="selectRole(this)">
                         <div class="rc-icon"><i class="fa-solid fa-headset"></i></div>
                         <div class="rc-title" id="rt_callcentre">Call Centre</div>
                         <div class="rc-desc" id="rd_callcentre">Mijozlar bilan ishlash</div>
+=======
+                    <div class="role-card" data-role="callcenter" data-label-uz="Call Center" 
+                        data-label-uzcyrl="Колл Марказ" data-label-ru="Колл Центр" onclick="selectRole(this)">
+                        <div class="rc-icon"><i class="fa-solid fa-headset"></i></div>
+                        <div class="rc-title" id="rt_callcenter">Call Center</div>
+                        <div class="rc-desc" id="rd_callcenter">Lead & Operator</div>
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
                         <div class="rc-check"><i class="fa-solid fa-circle-check"></i> <span>Tanlandi</span></div>
                     </div>
 
@@ -545,7 +557,11 @@
                 rt_seller: "Sotuvchi", rd_seller: "Sotuv & mahsulot",
                 rt_production: "Ishlab chiqarish", rd_production: "Retsept & mahsulot",
                 rt_branch: "Filial Admini", rd_branch: "O'z filiali",
+<<<<<<< HEAD
                 rt_callcentre: "Call Centre", rd_callcentre: "Mijozlar bilan ishlash",
+=======
+                rt_callcenter: "Call Center", rd_callcenter: "Lead & Operator",
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
             },
             "uz-cyrl": {
                 lbl_role: "Ролни танланг",
@@ -564,7 +580,11 @@
                 rt_seller: "Сотувчи", rd_seller: "Сотув & маҳсулот",
                 rt_production: "Ишлаб чиқариш", rd_production: "Рецепт & маҳсулот",
                 rt_branch: "Филиал Админи", rd_branch: "Ўз филиали",
+<<<<<<< HEAD
                 rt_callcentre: "Call Centre", rd_callcentre: "Мижозлар билан ишлаш",
+=======
+                rt_callcenter: "Call Center", rd_callcenter: "Lead & Operator",
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
             },
             ru: {
                 lbl_role: "Выберите роль",
@@ -583,7 +603,11 @@
                 rt_seller: "Продавец", rd_seller: "Продажи & товары",
                 rt_production: "Производство", rd_production: "Рецепты & продукты",
                 rt_branch: "Администратор филиала", rd_branch: "Свой филиал",
+<<<<<<< HEAD
                 rt_callcentre: "Call Centre", rd_callcentre: "Работа с клиентами",
+=======
+                rt_callcenter: "Колл Центр", rd_callcenter: "Lead & Оператор",
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
             }
         };
 
@@ -607,7 +631,7 @@
             });
 
             // Role card titles & descs
-            ['superadmin', 'accountant', 'hr', 'seller', 'production', 'branch'].forEach(r => {
+            ['superadmin', 'accountant', 'hr', 'seller', 'production', 'branch', 'callcenter'].forEach(r => {
                 const t = document.getElementById('rt_' + r);
                 const d = document.getElementById('rd_' + r);
                 if (t) t.textContent = s['rt_' + r];

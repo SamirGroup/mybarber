@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">
+        <i class="fa-solid fa-calendar-plus me-2"></i>{{ page_title }}
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% if classroom %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Sinf</label>
+            <input class="form-control" value="{{ classroom }}" readonly>
+          </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Fan <span class="text-danger">*</span></label>
+              <select name="subject" class="form-select" required>
+                <option value="">— Tanlang —</option>
+                {% for s in subjects %}
+                <option value="{{ s.pk }}" {% if schedule.subject_id == s.pk %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">O'qituvchi</label>
+              <select name="teacher" class="form-select">
+                <option value="">— Tanlang —</option>
+                {% for t in teachers %}
+                <option value="{{ t.pk }}" {% if schedule.teacher_id == t.pk %}selected{% endif %}>
+                  {{ t.get_full_name|default:t.username }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Hafta kuni <span class="text-danger">*</span></label>
+              <select name="day_of_week" class="form-select" required>
+                {% for num, name in days %}
+                <option value="{{ num }}" {% if schedule.day_of_week == num %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Dars soati (period)</label>
+              <select name="period" class="form-select" id="periodSelect" onchange="toggleManualTime()">
+                <option value="">— Qo'lda vaqt kiriting —</option>
+                {% for p in periods %}
+                <option value="{{ p.pk }}" {% if schedule.period_id == p.pk %}selected{% endif %}>
+                  {{ p.get_level_display }} | {{ p.lesson_number }}-soat ({{ p.start_time|time:"H:i" }}–{{ p.end_time|time:"H:i" }})
+                </option>
+                {% endfor %}
+              </select>
+              <small class="text-muted">Dars soatlari <a href="{% url 'students_lesson_periods' %}">bu yerda</a> sozlanadi</small>
+            </div>
+            <div class="col-md-6" id="manualTimeBlock">
+              <label class="form-label fw-semibold">Boshlanish vaqti</label>
+              <input type="time" name="start_time" class="form-control"
+                     value="{{ schedule.start_time|time:'H:i'|default:'' }}">
+            </div>
+            <div class="col-md-6" id="manualTimeBlock2">
+              <label class="form-label fw-semibold">Tugash vaqti</label>
+              <input type="time" name="end_time" class="form-control"
+                     value="{{ schedule.end_time|time:'H:i'|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Xona</label>
+              <input type="text" name="room" class="form-control" placeholder="Masalan: 201-xona"
+                     value="{{ schedule.room|default:'' }}">
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-save me-1"></i>Saqlash
+            </button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Bekor</a>
+            {% if schedule %}
+            <a href="{% url 'students_schedule_delete' schedule.pk %}"
+               class="btn btn-danger ms-auto"
+               onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+              <i class="fa-solid fa-trash me-1"></i>O'chirish
+            </a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleManualTime() {
+  const hasPeriod = document.getElementById('periodSelect').value;
+  document.getElementById('manualTimeBlock').style.opacity = hasPeriod ? '0.4' : '1';
+  document.getElementById('manualTimeBlock2').style.opacity = hasPeriod ? '0.4' : '1';
+}
+toggleManualTime();
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}Davomat: {{ classroom.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold mb-0">{{ classroom.name }} — Davomat</h5>
+  <a href="{% url 'students_classroom_journal' classroom.pk %}" class="btn btn-outline-primary btn-sm">
+    <i class="fa-solid fa-arrow-left me-1"></i>Jurnal
+  </a>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="d-flex gap-2 align-items-end">
+      <div>
+        <label class="form-label mb-1" style="font-size:12px;">Sana</label>
+        <input type="date" name="date" class="form-control form-control-sm" value="{{ sel_date|date:'Y-m-d' }}">
+      </div>
+      <button class="btn btn-primary btn-sm">Ko'rish</button>
+      <a href="{% url 'students_attendance_export' %}?classroom={{ classroom.pk }}&date_from={{ sel_date|date:'Y-m-d' }}&date_to={{ sel_date|date:'Y-m-d' }}"
+         class="btn btn-success btn-sm">
+        <i class="fa-solid fa-file-excel me-1"></i>Excel
+      </a>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header fw-bold">{{ sel_date|date:"d-MMMM Y, l" }}</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:13px;">
+        <thead class="table-light">
+          <tr><th>#</th><th>O'quvchi</th><th>Fan</th><th>Holat</th><th>Izoh</th><th>Belgilagan</th><th>Amal</th></tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          {% with records=att_map|default_if_none:'' %}
+          {% for sid, recs in att_map.items %}
+          {% if sid == student.pk %}
+          {% for a in recs %}
+          <tr>
+            <td class="text-muted">{{ forloop.parentloop.parentloop.counter }}</td>
+            <td><a href="{% url 'students_detail' student.pk %}">{{ student.full_name }}</a></td>
+            <td>{{ a.subject|default:"—" }}</td>
+            <td>
+              {% if a.status == 'present' %}<span class="badge bg-success">Keldi</span>
+              {% elif a.status == 'absent' %}<span class="badge bg-danger">Kelmadi</span>
+              {% elif a.status == 'late' %}<span class="badge bg-warning text-dark">Kech keldi</span>
+              {% else %}<span class="badge bg-secondary">Uzrli</span>{% endif %}
+            </td>
+            <td>{{ a.note|default:"—" }}</td>
+            <td>{{ a.marked_by.username|default:"—" }}</td>
+            <td>
+              <a href="{% url 'students_attendance_edit' a.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
+                <i class="fa-solid fa-pen"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+          {% endif %}
+          {% endfor %}
+          {% if student.pk not in att_map %}
+          <tr class="table-warning">
+            <td class="text-muted">{{ forloop.counter }}</td>
+            <td><a href="{% url 'students_detail' student.pk %}">{{ student.full_name }}</a></td>
+            <td colspan="5" class="text-muted fst-italic">Davomat belgilanmagan</td>
+          </tr>
+          {% endif %}
+          {% endwith %}
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-3">O'quvchilar yo'q</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

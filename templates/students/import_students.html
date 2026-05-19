@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}O'quvchilarni import qilish{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">
+        <i class="fa-solid fa-file-import me-2"></i>Excel orqali import
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info" style="font-size:13px;">
+          <strong>Excel fayl formati (ustunlar tartibi):</strong><br>
+          A: Familiya | B: Ism | C: Otasining ismi | D: Jinsi (M/F) |
+          E: Tug'ilgan sana (YYYY-MM-DD) | F: Sinf nomi | G: Ota-ona telefoni
+        </div>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Excel fayl (.xlsx)</label>
+            <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-upload me-1"></i>Import qilish
+            </button>
+            <a href="{% url 'students_list' %}" class="btn btn-secondary">Bekor</a>
+            <a href="{% url 'students_export' %}" class="btn btn-success ms-auto">
+              <i class="fa-solid fa-download me-1"></i>Namuna yuklab olish
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

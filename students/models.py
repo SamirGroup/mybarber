@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Sum
 from enrollment.models import Grade, AcademicYear
+from datetime import timedelta
 
 
 class Classroom(models.Model):
@@ -74,6 +75,92 @@ class Student(models.Model):
         b = self.birth_date
         return today.year - b.year - ((today.month, today.day) < (b.month, b.day))
 
+    @property
+    def total_discount(self):
+        """Barcha aktiv shartnomalardagi chegirmalar"""
+        total = 0
+        for contract in self.contracts.filter(is_active=True):
+            total += contract.discount_percent
+        return total
+    
+    @property
+    def has_discount(self):
+        """Chegirmasi bormi"""
+        return self.contracts.filter(is_active=True, discount_percent__gt=0).exists()
+    
+    def get_discount_details(self):
+        """Chegirma ma'lumotlari"""
+        discounts = []
+        for contract in self.contracts.filter(is_active=True, discount_percent__gt=0):
+            discounts.append({
+                'contract_number': contract.contract_number,
+                'discount_percent': contract.discount_percent,
+                'discount_reason': contract.discount_reason,
+                'effective_fee': contract.effective_fee,
+            })
+        return discounts
+    
+    def get_balance_for_month(self, year, month):
+        """Belgilangan oy uchun to'lov va qarzdorlik"""
+        total_debt = 0
+        total_paid = 0
+        
+        for contract in self.contracts.filter(is_active=True):
+            paid = contract.payments.filter(
+                payment_date__year=year,
+                payment_date__month=month
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            # Oy uchun kutilayotgan to'lov
+            expected = contract.effective_fee
+            
+            total_paid += paid
+            total_debt += max(0, expected - paid)
+        
+        return {
+            'total_debt': total_debt,
+            'total_paid': total_paid,
+            'expected': total_paid + total_debt,
+        }
+    
+    def get_quarter_grades_by_subject(self, quarter):
+        """Belgilangan chorak bo'yicha fanlar bo'yicha baholar"""
+        grades = self.quarter_grades.filter(quarter=quarter).select_related('subject')
+        result = {}
+        for grade in grades:
+            result[grade.subject.name] = float(grade.grade)
+        return result
+    
+    def get_average_grade(self):
+        """O'rtacha baho"""
+        from django.db.models import Avg
+        avg = self.quarter_grades.aggregate(avg=Avg('grade'))['avg']
+        return round(avg, 2) if avg else 0
+    
+    def get_attendance_rate(self, start_date=None, end_date=None):
+        """Davomat foizi"""
+        from django.db.models import Count, Q
+        
+        if start_date is None:
+            start_date = timezone.now().date() - timedelta(days=30)
+        if end_date is None:
+            end_date = timezone.now().date()
+        
+        total = self.attendances.filter(date__range=[start_date, end_date]).count()
+        present = self.attendances.filter(
+            date__range=[start_date, end_date],
+            status='present'
+        ).count()
+        late = self.attendances.filter(
+            date__range=[start_date, end_date],
+            status='late'
+        ).count()
+        
+        if total == 0:
+            return 0
+        
+        return round(((present + late * 0.5) / total) * 100, 2)
+
 
 # в”Ђв”Ђ Documents в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class DocumentType(models.Model):
@@ -125,6 +212,27 @@ class Subject(models.Model):
         return self.name
 
 
+class LessonPeriod(models.Model):
+    """Dars soatlari — kichik va katta sinflar uchun alohida"""
+    LEVEL_CHOICES = [
+        ('primary', 'Boshlang\'ich (1-4 sinf)'),
+        ('secondary', 'O\'rta (5-9 sinf)'),
+        ('high', 'Yuqori (10-11 sinf)'),
+    ]
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+    lesson_number = models.IntegerField(help_text='1-soat, 2-soat...')
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    label = models.CharField(max_length=50, blank=True, help_text='Masalan: 1-dars, Tanaffus')
+
+    class Meta:
+        ordering = ['level', 'lesson_number']
+        unique_together = ['level', 'lesson_number']
+
+    def __str__(self):
+        return f"{self.get_level_display()} | {self.lesson_number}-soat ({self.start_time:%H:%M}–{self.end_time:%H:%M})"
+
+
 class Schedule(models.Model):
     DAYS = [
         (1, 'Dushanba'), (2, 'Seshanba'), (3, 'Chorshanba'),
@@ -134,14 +242,30 @@ class Schedule(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     teacher = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='teaching_schedules')
     day_of_week = models.IntegerField(choices=DAYS)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    period = models.ForeignKey(LessonPeriod, null=True, blank=True, on_delete=models.SET_NULL, related_name='schedules')
+    # Eski maydonlar — period bo'lmasa fallback
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    room = models.CharField(max_length=50, blank=True, help_text='Xona raqami')
 
     class Meta:
-        ordering = ['day_of_week', 'start_time']
+        ordering = ['day_of_week', 'period__lesson_number', 'start_time']
 
     def __str__(self):
+<<<<<<< HEAD
         return f"{self.classroom} | {self.get_day_of_week_display()} {self.start_time} вЂ” {self.subject}"
+=======
+        period_str = f"{self.period.lesson_number}-soat" if self.period else str(self.start_time)
+        return f"{self.classroom} | {self.get_day_of_week_display()} {period_str} — {self.subject}"
+
+    @property
+    def effective_start(self):
+        return self.period.start_time if self.period else self.start_time
+
+    @property
+    def effective_end(self):
+        return self.period.end_time if self.period else self.end_time
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 
 
 # в”Ђв”Ђ Grades (Baholar) в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
@@ -260,7 +384,54 @@ class HomeworkSubmission(models.Model):
         return f"{self.student} | {self.homework} | {self.status}"
 
 
+<<<<<<< HEAD
 # в”Ђв”Ђ Finance в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+=======
+# ── Finance ───────────────────────────────────────────────────────────
+class Contract(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='contracts')
+    contract_number = models.CharField(max_length=100, unique=True)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    monthly_fee = models.DecimalField(max_digits=12, decimal_places=2)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    discount_reason = models.CharField(max_length=200, blank=True)
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.contract_number} — {self.student}"
+
+    @property
+    def effective_fee(self):
+        return self.monthly_fee * (1 - self.discount_percent / 100)
+
+    def get_total_paid(self):
+        """Jami to'langan summa"""
+        return self.payments.aggregate(total=Sum('amount'))['total'] or 0
+
+    def get_balance(self):
+        """Joriy qarzdorlik"""
+        today = timezone.now().date()
+        months_active = self._months_between(self.start_date, today)
+        expected = self.effective_fee * months_active
+        paid = self.get_total_paid()
+        return max(0, expected - paid)
+    
+    def _months_between(self, start, end):
+        """Ikkita sana orasidagi oylar soni"""
+        return (end.year - start.year) * 12 + (end.month - start.month) + 1
+    
+    def get_payment_history(self):
+        """To'lovlar tarixi"""
+        return self.payments.select_related('received_by').order_by('-payment_date')
+
+
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 class StudentBalance(models.Model):
     """O'quvchi qarzdorligini avtomatik hisoblash"""
     student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='balance')
@@ -276,13 +447,9 @@ class StudentBalance(models.Model):
         total = 0
         
         for contract in self.student.contracts.filter(is_active=True):
-            # Oylik to'lovlar miqdorini hisoblash
             months_active = self._months_between(contract.start_date, today)
             expected = contract.effective_fee * months_active
-            
-            # To'langan summalar
             paid = contract.payments.aggregate(s=Sum('amount'))['s'] or 0
-            
             total += max(0, expected - paid)
         
         self.total_debt = total
@@ -335,6 +502,7 @@ class MonthlyPayment(models.Model):
         self.save()
 
 
+<<<<<<< HEAD
 class Contract(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='contracts')
     contract_number = models.CharField(max_length=100, unique=True)
@@ -358,11 +526,23 @@ class Contract(models.Model):
         return self.monthly_fee * (1 - self.discount_percent / 100)
 
 
+=======
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 class Payment(models.Model):
     PAYMENT_METHOD = [
         ('cash', 'Naqd'),
         ('card', 'Karta'),
         ('transfer', "O'tkazma"),
+        ('payme', 'Payme'),
+        ('click', 'Click'),
+        ('uzum', 'Uzum Bank'),
+        ('apelsin', 'Apelsin'),
+        ('humo', 'Humo'),
+        ('uzcard', 'UzCard'),
+        ('multicard', 'Multicard'),
+        ('anorbank', 'Anorbank'),
+        ('alif', 'Alif Mobi'),
+        ('online', 'Online to\'lov'),
     ]
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='payments')
     contract = models.ForeignKey(Contract, null=True, blank=True, on_delete=models.SET_NULL, related_name='payments')
@@ -372,6 +552,9 @@ class Payment(models.Model):
     month_for = models.DateField(help_text="Qaysi oy uchun to'lov")
     received_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     note = models.CharField(max_length=200, blank=True)
+    # Online to'lov ma'lumotlari
+    transaction_id = models.CharField(max_length=200, blank=True, help_text='Online to\'lov tranzaksiya ID')
+    is_confirmed = models.BooleanField(default=True, help_text='Online to\'lovlar uchun tasdiqlash holati')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -461,7 +644,7 @@ class ChatMessageRead(models.Model):
     
     class Meta:
         unique_together = ['message', 'user']
-    
+
     def __str__(self):
         return f"{self.user} read {self.message} at {self.read_at:%Y-%m-%d %H:%M}"
 
@@ -490,3 +673,48 @@ class StudentTransfer(models.Model):
     
     def __str__(self):
         return f"{self.student} | {self.get_transfer_type_display()} | {self.transfer_date}"
+
+
+# ── Online Payment Gateway ────────────────────────────────────────────
+class OnlinePayment(models.Model):
+    """O'zbekiston to'lov tizimlari orqali kelgan to'lovlar"""
+    PROVIDER_CHOICES = [
+        ('payme', 'Payme'),
+        ('click', 'Click'),
+        ('uzum', 'Uzum Bank'),
+        ('apelsin', 'Apelsin'),
+        ('humo', 'Humo'),
+        ('uzcard', 'UzCard'),
+        ('multicard', 'Multicard'),
+        ('anorbank', 'Anorbank'),
+        ('alif', 'Alif Mobi'),
+        ('cap', 'CAP'),
+        ('payme_business', 'Payme Business'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Kutilmoqda'),
+        ('paid', 'To\'landi'),
+        ('failed', 'Xato'),
+        ('cancelled', 'Bekor qilindi'),
+        ('refunded', 'Qaytarildi'),
+    ]
+
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES)
+    transaction_id = models.CharField(max_length=200, unique=True)
+    order_id = models.CharField(max_length=100, blank=True, help_text='Tizim ichki order ID')
+    student = models.ForeignKey(Student, null=True, blank=True, on_delete=models.SET_NULL, related_name='online_payments')
+    contract = models.ForeignKey(Contract, null=True, blank=True, on_delete=models.SET_NULL, related_name='online_payments')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    month_for = models.DateField(null=True, blank=True)
+    raw_request = models.JSONField(null=True, blank=True)
+    raw_response = models.JSONField(null=True, blank=True)
+    payment = models.OneToOneField(Payment, null=True, blank=True, on_delete=models.SET_NULL, related_name='online_payment')
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.provider} | {self.transaction_id} | {self.amount} | {self.status}"

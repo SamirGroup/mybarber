@@ -21,12 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#8dh8-hxh*8j93l2k@dfu8n1rr@s2-tyezw9-iw33g1@y)bgoa'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-demo-only-change-in-production-#8dh8hxh')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+#DEBUG = os.getenv('DEBUG', 'True') == 'True'  # demo uchun True, deploydа False qiling
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
+<<<<<<< HEAD
 # DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ["*"]
+=======
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
@@ -34,7 +37,11 @@ ALLOWED_HOSTS = [
     '.railway.app',  # Barcha railway.app domenlariga ruxsat
 ]
 CSRF_TRUSTED_ORIGINS = [
+<<<<<<< HEAD
     'web-production-058b4.up.railway.app',
+=======
+    'https://web-production-058b4.up.railway.app/',
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
     'https://*.railway.app',
 ]
 
@@ -48,11 +55,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third party
-    'channels',
-    'rest_framework',
-    'corsheaders',
-    
+    'whitenoise.runserver_nostatic',
+    'whitenoise',
+
     # Custom apps
     'core',
     'production',
@@ -62,16 +67,20 @@ INSTALLED_APPS = [
     'hr',
     'enrollment',
     'students',
+<<<<<<< HEAD
     'faceid',
     'rosetta',
     'whitenoise.runserver_nostatic',
     'whitenoise',
+=======
+    'callcenter',
+    # 'rosetta',  # requires django-rosetta
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -167,9 +176,14 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
+<<<<<<< HEAD
 # FACE ID davomat (maktab kirish / o'quvchilar / HR)
 FACEID_TOLERANCE = float(os.getenv('FACEID_TOLERANCE', '0.55'))
 FACEID_COOLDOWN_SECONDS = int(os.getenv('FACEID_COOLDOWN_SECONDS', '45'))
+=======
+# Internal API token for cron/celery tasks
+SMS_TASK_API_TOKEN = os.getenv('SMS_TASK_API_TOKEN', '')
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
 
 # Meta Webhook
 META_VERIFY_TOKEN = os.getenv('META_VERIFY_TOKEN', '')
@@ -732,6 +746,9 @@ TWILIO_TIMEOUT = int(os.getenv('TWILIO_TIMEOUT', '10'))
 TWILIO_VALIDATE_REQUEST = os.getenv('TWILIO_VALIDATE_REQUEST', 'False') == 'True'
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
 
+# Site URL (to'lov tizimlari callback uchun)
+SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
+
 # Default application identity
 APP_BRAND_NAME = os.getenv('APP_BRAND_NAME', 'Bunyod Non Sharjah School')
 APP_ORG_TYPE = os.getenv('APP_ORG_TYPE', 'private_school')
@@ -756,36 +773,35 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Channels configuration
-ASGI_APPLICATION = 'bakery_erp.asgi.application'
+# Channels configuration (commented — requires channels + redis)
+# ASGI_APPLICATION = 'bakery_erp.asgi.application'
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
+#         },
+#     },
+# }
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
-        },
-    },
-}
+# Django REST Framework (commented — requires djangorestframework)
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.SessionAuthentication',
+#     ],
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 25,
+# }
 
-# Django REST Framework
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 25,
-}
-
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
-CORS_ALLOW_CREDENTIALS = True
+# CORS settings (commented — requires django-cors-headers)
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:8000',
+#     'http://127.0.0.1:8000',
+# ]
+# CORS_ALLOW_CREDENTIALS = True
 
 # Celery configuration
 CELERY_BROKER_URL = f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', 6379)}/0"

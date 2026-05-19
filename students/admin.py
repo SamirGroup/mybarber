@@ -164,6 +164,11 @@ class ChatGroupAdmin(admin.ModelAdmin):
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
+<<<<<<< HEAD
     list_display = ['group', 'sender', 'sent_at', 'is_deleted']
     list_filter = ['sent_at', 'is_deleted']
+=======
+    list_display = ['group', 'sender', 'sent_at']
+    list_filter = ['sent_at']
+>>>>>>> 235c534415dec3cf0e5950a41d3f0293594dd271
     search_fields = ['text']

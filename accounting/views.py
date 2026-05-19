@@ -3,7 +3,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -12,6 +12,189 @@ from sales.models import Sale
 
 from .models import Account, CashRegister, ExpenseCategory, JournalEntry, JournalLine, Supplier, Transaction
 from . import chart_data, services
+
+
+@login_required
+def students_payments_report(request):
+    """O'quvchilar bo'yicha to'lovlar hisoboti - Naqd va Online to'lovlar bitta ro'yxatda"""
+    if not _can_access(request.user, 'accountant'):
+        return redirect('dashboard')
+
+    from students.models import Student, Contract, Payment, OnlinePayment
+    from decimal import Decimal
+    
+    student_id = request.GET.get('student', '')
+    contract_number = request.GET.get('contract', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    payment_method = request.GET.get('method', '')
+    
+    # Barcha o'quvchilar
+    students = Student.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
+    # Filtrlar
+    payments_qs = Payment.objects.select_related(
+        'student', 'contract', 'received_by'
+    ).order_by('-payment_date')
+    
+    if student_id:
+        payments_qs = payments_qs.filter(student_id=student_id)
+    if contract_number:
+        payments_qs = payments_qs.filter(contract__contract_number__icontains=contract_number)
+    if date_from:
+        payments_qs = payments_qs.filter(payment_date__gte=date_from)
+    if date_to:
+        payments_qs = payments_qs.filter(payment_date__lte=date_to)
+    if payment_method:
+        payments_qs = payments_qs.filter(method=payment_method)
+    
+    payments = list(payments_qs[:500])  # Limit
+    
+    # Online to'lovlar (faqat tasdiqlanganlar)
+    online_payments_qs = OnlinePayment.objects.select_related(
+        'student', 'contract'
+    ).filter(status='paid').order_by('-created_at')
+    
+    if student_id:
+        online_payments_qs = online_payments_qs.filter(student_id=student_id)
+    if contract_number:
+        online_payments_qs = online_payments_qs.filter(contract__contract_number__icontains=contract_number)
+    if date_from:
+        online_payments_qs = online_payments_qs.filter(created_at__date__gte=date_from)
+    if date_to:
+        online_payments_qs = online_payments_qs.filter(created_at__date__lte=date_to)
+    
+    online_payments = list(online_payments_qs[:500])
+    
+    # Barcha to'lovlar (Naqd + Online) bitta ro'yxatda
+    all_payments = []
+    
+    # Naqd to'lovlarni qo'shish
+    for payment in payments:
+        all_payments.append({
+            'is_online': False,
+            'payment_date': payment.payment_date,
+            'student_name': payment.student.full_name,
+            'contract_number': payment.contract.contract_number if payment.contract else None,
+            'amount': payment.amount,
+            'method_display': payment.get_method_display(),
+            'month_for': payment.month_for,
+            'status': 'paid',
+            'status_display': 'Tasdiqlangan',
+            'transaction_id': payment.transaction_id,
+            'note': payment.note,
+        })
+    
+    # Online to'lovlarni qo'shish
+    for op in online_payments:
+        all_payments.append({
+            'is_online': True,
+            'payment_date': op.confirmed_at or op.created_at,
+            'student_name': op.student.full_name if op.student else 'Noma\'lum',
+            'contract_number': op.contract.contract_number if op.contract else None,
+            'amount': op.amount,
+            'method_display': op.get_provider_display(),
+            'month_for': op.month_for,
+            'status': op.status,
+            'status_display': op.get_status_display(),
+            'transaction_id': op.transaction_id,
+            'note': f"Online to'lov - {op.get_provider_display()}",
+        })
+    
+    # Sana bo'yicha saralash (eng yangi birinchi)
+    all_payments.sort(key=lambda x: x['payment_date'], reverse=True)
+    all_payments = all_payments[:300]  # Limit
+    
+    # Jami summa
+    total_cash = payments_qs[:500].aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    total_online = online_payments_qs[:500].aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    total_all_payments = total_cash + total_online
+    
+    # O'quvchilar bo'yicha guruhlangan
+    students_summary = []
+    for student in students[:50]:
+        student_payments = Payment.objects.filter(student=student)
+        student_online = OnlinePayment.objects.filter(student=student, status='paid')
+        
+        if date_from:
+            student_payments = student_payments.filter(payment_date__gte=date_from)
+            student_online = student_online.filter(created_at__date__gte=date_from)
+        if date_to:
+            student_payments = student_payments.filter(payment_date__lte=date_to)
+            student_online = student_online.filter(created_at__date__lte=date_to)
+        
+        total_paid = student_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        total_online_paid = student_online.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        total_student_paid = total_paid + total_online_paid
+        
+        active_contracts = Contract.objects.filter(student=student, is_active=True)
+        total_contract_fee = sum(c.effective_fee for c in active_contracts)
+        debt = max(Decimal('0'), total_contract_fee - total_student_paid)
+        
+        students_summary.append({
+            'student': student,
+            'total_paid': total_student_paid,
+            'total_cash': total_paid,
+            'total_online': total_online_paid,
+            'total_fee': total_contract_fee,
+            'debt': debt,
+            'payment_count': student_payments.count(),
+            'online_count': student_online.count(),
+            'contract_count': active_contracts.count(),
+        })
+    
+    # To'lov usullari bo'yicha statistika
+    method_summary = []
+    
+    # Naqd to'lov usullari
+    methods = Payment.PAYMENT_METHOD
+    for method_code, method_name in methods:
+        agg = payments_qs.filter(method=method_code).aggregate(total=Sum('amount'), cnt=Count('id'))
+        method_total = agg['total'] or Decimal('0')
+        if method_total > 0:
+            method_summary.append({
+                'code': method_code,
+                'name': method_name,
+                'total': method_total,
+                'count': agg['cnt'] or 0,
+                'type': 'cash',
+            })
+    
+    # Online to'lov usullari
+    provider_totals = {}
+    for op in online_payments:
+        provider = op.get_provider_display()
+        if provider not in provider_totals:
+            provider_totals[provider] = {'total': Decimal('0'), 'count': 0}
+        provider_totals[provider]['total'] += op.amount
+        provider_totals[provider]['count'] += 1
+    
+    for provider, data in provider_totals.items():
+        if data['total'] > 0:
+            method_summary.append({
+                'code': f'online_{provider}',
+                'name': provider,
+                'total': data['total'],
+                'count': data['count'],
+                'type': 'online',
+            })
+    
+    context = {
+        'students': students,
+        'students_summary': students_summary,
+        'all_payments': all_payments,
+        'total_all_payments': total_all_payments,
+        'total_cash': total_cash,
+        'total_online': total_online,
+        'method_summary': method_summary,
+        'selected_student': student_id,
+        'selected_contract': contract_number,
+        'date_from': date_from,
+        'date_to': date_to,
+        'selected_method': payment_method,
+        'page_title': 'O\'quvchilar to\'lovlari',
+    }
+    return render(request, 'accounting/students_payments.html', context)
 
 
 def _can_access(user, *roles):
@@ -209,6 +392,35 @@ def accounting_dashboard(request):
     suppliers_with_debt_count = Supplier.objects.filter(debt__gt=0).count()
     account_count = accounts.count()
     pos_all_time_total = Sale.objects.aggregate(t=Sum('total_amount'))['t'] or Decimal('0')
+
+    # O'quvchilar bo'yicha statistika
+    try:
+        from students.models import Student, Contract, Payment
+        students_qs = Student.objects.filter(is_active=True).order_by('last_name', 'first_name')[:20]
+        students_summary = []
+        for student in students_qs:
+            student_payments = Payment.objects.filter(student=student)
+            if date_from:
+                student_payments = student_payments.filter(payment_date__gte=date_from)
+            if date_to:
+                student_payments = student_payments.filter(payment_date__lte=date_to)
+            
+            total_paid = student_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            active_contracts = Contract.objects.filter(student=student, is_active=True)
+            
+            total_contract_fee = sum(c.effective_fee for c in active_contracts)
+            debt = max(Decimal('0'), total_contract_fee - total_paid)
+            
+            students_summary.append({
+                'student': student,
+                'total_paid': total_paid,
+                'total_fee': total_contract_fee,
+                'debt': debt,
+                'payment_count': student_payments.count(),
+                'contract_count': active_contracts.count(),
+            })
+    except Exception:
+        students_summary = []
 
     overview_kpis = [
         {
@@ -533,5 +745,6 @@ def accounting_dashboard(request):
         'date_from': date_from,
         'date_to': date_to,
         'saved_filter': request.session.get('accounting_saved_filter'),
+        'students_summary': students_summary,
     }
     return render(request, 'accounting.html', context)

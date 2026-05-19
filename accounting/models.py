@@ -5,6 +5,9 @@ from django.db.models import Sum
 from django.utils import timezone
 
 
+# Accounting modellar
+
+
 class Account(models.Model):
     """Hisoblar rejasi — Chart of Accounts."""
 
@@ -129,6 +132,39 @@ class JournalEntry(models.Model):
 
     def total_credit(self):
         return self.lines.aggregate(t=Sum('credit'))['t'] or 0
+
+
+class PaymentGateway(models.Model):
+    """O'zbekiston to'lov tizimlari sozlamalari"""
+    PROVIDER_CHOICES = [
+        ('payme', 'Payme'),
+        ('payme_business', 'Payme Business'),
+        ('click', 'Click'),
+        ('uzum', 'Uzum Bank'),
+        ('apelsin', 'Apelsin'),
+        ('humo', 'Humo'),
+        ('uzcard', 'UzCard'),
+        ('multicard', 'Multicard'),
+        ('anorbank', 'Anorbank'),
+        ('alif', 'Alif Mobi'),
+        ('cap', 'CAP'),
+    ]
+
+    provider = models.CharField(max_length=30, choices=PROVIDER_CHOICES, unique=True)
+    merchant_id = models.CharField(max_length=200, blank=True)
+    api_key = models.CharField(max_length=500, blank=True)
+    api_url = models.CharField(max_length=300, blank=True)
+    commission_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=False)
+    is_test = models.BooleanField(default=True, help_text='Test rejimi')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['provider']
+
+    def __str__(self):
+        return f"{self.get_provider_display()} — {'Test' if self.is_test else 'Live'} — {'Faol' if self.is_active else 'Nofaol'}"
 
 
 class JournalLine(models.Model):

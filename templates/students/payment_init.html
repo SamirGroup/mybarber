@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}Online to'lov{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold">
+        <i class="fa-solid fa-credit-card me-2"></i>Online to'lov — {{ student.full_name }}
+      </div>
+      <div class="card-body">
+        {% if not contracts %}
+        <div class="alert alert-warning">Faol shartnoma topilmadi. Avval shartnoma yarating.</div>
+        {% else %}
+        <p class="text-muted mb-3" style="font-size:13px;">To'lov usulini tanlang va shartnomani belgilang:</p>
+
+        <!-- To'lov tizimlari ro'yxati -->
+        <div class="row g-3 mb-4">
+          <!-- Payme -->
+          <div class="col-6 col-md-4">
+            <a href="#" onclick="initPayment('{{ student.id }}', 'payme', {{ student.contracts.filter(is_active=True).first.effective_fee|default:'0' }}); return false;"
+               class="d-block text-center p-3 rounded border text-decoration-none payment-provider"
+               style="background:#e8f4ff; border-color:#00AAFF !important;">
+              <div class="fw-bold mt-2" style="color:#00AAFF; font-size:16px;">Payme</div>
+              <small class="text-muted" style="font-size:11px;">Karta orqali</small>
+            </a>
+          </div>
+          
+          <!-- Click -->
+          <div class="col-6 col-md-4">
+            <a href="#" onclick="initPayment('{{ student.id }}', 'click', {{ student.contracts.filter(is_active=True).first.effective_fee|default:'0' }}); return false;"
+               class="d-block text-center p-3 rounded border text-decoration-none payment-provider"
+               style="background:#fff3e8; border-color:#FF6600 !important;">
+              <div class="fw-bold" style="color:#FF6600; font-size:16px;">Click</div>
+              <small class="text-muted" style="font-size:11px;">UzCard orqali</small>
+            </a>
+          </div>
+          
+          <!-- Uzum Bank -->
+          <div class="col-6 col-md-4">
+            <a href="#" onclick="initPayment('{{ student.id }}', 'uzum', {{ student.contracts.filter(is_active=True).first.effective_fee|default:'0' }}); return false;"
+               class="d-block text-center p-3 rounded border text-decoration-none payment-provider"
+               style="background:#f3e8ff; border-color:#7B2FBE !important;">
+              <div class="fw-bold" style="color:#7B2FBE; font-size:16px;">Uzum Bank</div>
+              <small class="text-muted" style="font-size:11px;">Uzum Card</small>
+            </a>
+          </div>
+          
+          <!-- Apelsin -->
+          <div class="col-6 col-md-4">
+            <a href="#" onclick="initPayment('{{ student.id }}', 'apelsin', {{ student.contracts.filter(is_active=True).first.effective_fee|default:'0' }}); return false;"
+               class="d-block text-center p-3 rounded border text-decoration-none payment-provider"
+               style="background:#e8ffe8; border-color:#00CC00 !important;">
+              <div class="fw-bold" style="color:#00CC00; font-size:16px;">Apelsin</div>
+              <small class="text-muted" style="font-size:11px;">Apelsin.uz</small>
+            </a>
+          </div>
+          
+          <!-- CAP -->
+          <div class="col-6 col-md-4">
+            <a href="#" onclick="initPayment('{{ student.id }}', 'cap', {{ student.contracts.filter(is_active=True).first.effective_fee|default:'0' }}); return false;"
+               class="d-block text-center p-3 rounded border text-decoration-none payment-provider"
+               style="background:#fff8e8; border-color:#FFA500 !important;">
+              <div class="fw-bold" style="color:#FFA500; font-size:16px;">CAP</div>
+              <small class="text-muted" style="font-size:11px;">Click Aylama Pul</small>
+            </a>
+          </div>
+          
+          <!-- Humo/UzCard -->
+          <div class="col-6 col-md-4">
+            <a href="#" onclick="initPayment('{{ student.id }}', 'humo', {{ student.contracts.filter(is_active=True).first.effective_fee|default:'0' }}); return false;"
+               class="d-block text-center p-3 rounded border text-decoration-none payment-provider"
+               style="background:#ffe8f3; border-color:#E91E63 !important;">
+              <div class="fw-bold" style="color:#E91E63; font-size:16px;">Humo/UzCard</div>
+              <small class="text-muted" style="font-size:11px;">Bepul to'lov</small>
+            </a>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="font-size:13px;">
+          <i class="fa-solid fa-info-circle me-2"></i>
+          <strong>Qanday ishlaydi:</strong><br>
+          1. To'lov tizimini tanlang<br>
+          2. Summani va shartnoma raqamini kiriting<br>
+          3. To'lovni amalga oshiring<br>
+          4. To'lov avtomatik ravishda tizimga va buxgalteriyaga yoziladi
+        </div>
+
+        <h6 class="fw-bold mb-2 mt-4">Faol shartnomalar:</h6>
+        <table class="table table-sm" style="font-size:13px;">
+          <thead class="table-light">
+            <tr><th>Shartnoma №</th><th>Oylik to'lov</th><th>Chegirma</th><th>Samarali summa</th><th>Amal qilish muddati</th></tr>
+          </thead>
+          <tbody>
+            {% for c in contracts %}
+            <tr>
+              <td><strong>{{ c.contract_number }}</strong></td>
+              <td>{{ c.monthly_fee|floatformat:0 }} so'm</td>
+              <td>{{ c.discount_percent }}%</td>
+              <td class="fw-bold text-success">{{ c.effective_fee|floatformat:0 }} so'm</td>
+              <td>{{ c.start_date|date:"d.m.Y" }} - {{ c.end_date|date:"d.m.Y" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
+        <a href="{% url 'students_finance' student.pk %}" class="btn btn-secondary btn-sm mt-2">
+          <i class="fa-solid fa-arrow-left me-1"></i>Moliya sahifasiga qaytish
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function initPayment(studentId, provider, defaultAmount) {
+  // Payment initialization modal yoki form ochish
+  const amount = prompt(`To'lov summasini kiriting (UZS):`, defaultAmount);
+  if (!amount || amount <= 0) {
+    alert('Noto\'g\'ri summa');
+    return;
+  }
+  
+  const contractNumber = prompt("Shartnoma raqamini kiriting:", "");
+  
+  const monthFor = prompt("Qaysi oy uchun? (YYYY-MM-01 formatda)", new Date().toISOString().slice(0, 7) + "-01");
+  
+  // Redirect to payment gateway
+  window.location.href = `/students/payment/start/${studentId}/?provider=${provider}&amount=${amount}&contract=${contractNumber || ''}&month_for=${monthFor || ''}`;
+}
+</script>
+{% endblock %}

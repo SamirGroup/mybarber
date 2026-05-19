@@ -1,42 +1,130 @@
 {% extends 'base.html' %}
+{% block breadcrumb %}Sinflar{% endblock %}
+
+{% block extra_head %}
+<style>
+  .classroom-list { display: flex; flex-direction: column; gap: 10px; }
+  .classroom-row {
+    display: flex; align-items: center; gap: 16px;
+    background: #fff; border: 1px solid #c8ddd6;
+    border-radius: 14px; padding: 14px 18px;
+    transition: box-shadow .18s, border-color .18s;
+  }
+  .classroom-row:hover { box-shadow: 0 4px 18px rgba(8,84,61,.10); border-color: #08543D; }
+  .cls-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: #e6f4ef; color: #08543D;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .cls-name { font-size: 17px; font-weight: 700; color: #08543D; line-height: 1.1; }
+  .cls-meta { font-size: 12px; color: #3d6b57; margin-top: 2px; }
+  .cls-teacher { font-size: 12px; color: #636e72; display: flex; align-items: center; gap: 5px; }
+  .cls-count {
+    background: #e6f4ef; color: #08543D;
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 13px; font-weight: 700; white-space: nowrap;
+  }
+  .cls-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .cls-actions a {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1.5px solid #c8ddd6; color: #08543D;
+    font-size: 14px; transition: all .15s; text-decoration: none;
+  }
+  .cls-actions a:hover { background: #08543D; color: #fff; border-color: #08543D; }
+  .cls-actions a.primary-action {
+    background: #08543D; color: #fff; border-color: #08543D;
+    width: auto; padding: 0 14px; font-size: 12px; font-weight: 600; gap: 5px;
+  }
+  .cls-actions a.primary-action:hover { background: #054d37; border-color: #054d37; }
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; gap: 12px;
+  }
+  .page-header h5 { font-size: 20px; font-weight: 700; color: #08543D; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .filter-bar {
+    background: #fff; border: 1px solid #c8ddd6; border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .filter-bar select { border: 1.5px solid #c8ddd6; border-radius: 8px; padding: 7px 10px; font-size: 13px; color: #08543D; outline: none; }
+  .filter-bar select:focus { border-color: #08543D; }
+  .filter-bar button { background: #08543D; color: #fff; border: none; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .filter-bar button:hover { background: #054d37; }
+  .btn-new {
+    background: #08543D; color: #fff; border: none; border-radius: 10px;
+    padding: 9px 18px; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 7px; text-decoration: none;
+    transition: background .15s;
+  }
+  .btn-new:hover { background: #054d37; color: #fff; }
+  .btn-outline-sm {
+    background: #fff; color: #08543D; border: 1.5px solid #c8ddd6;
+    border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px; text-decoration: none;
+    transition: all .15s;
+  }
+  .btn-outline-sm:hover { border-color: #08543D; background: #e6f4ef; color: #08543D; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #3d6b57; }
+  .empty-state i { font-size: 48px; opacity: .25; display: block; margin-bottom: 12px; color: #08543D; }
+  .empty-state a { color: #08543D; font-weight: 600; }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1 style="font-size:28px;margin-bottom:24px;">🚪 Sinf xonalari</h1>
-
-<div style="margin-bottom:24px;">
-  <a href="{% url 'students_classroom_create' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Yangi sinf yaratish</a>
+<div class="page-header">
+  <h5><i class="fa-solid fa-school"></i> Sinf xonalari</h5>
+  <div style="display:flex;gap:8px;">
+    <a href="{% url 'students_lesson_periods' %}" class="btn-outline-sm">
+      <i class="fa-solid fa-clock"></i> Dars soatlari
+    </a>
+    <a href="{% url 'students_classroom_create' %}" class="btn-new">
+      <i class="fa-solid fa-plus"></i> Yangi sinf
+    </a>
+  </div>
 </div>
 
-<div class="card" style="background:#fffdf7;border:1px solid #e2d9cf;border-radius:16px;padding:24px;">
-  <table class="data-table" style="width:100%;">
-    <thead>
-      <tr>
-        <th>Sinf nomi</th>
-        <th>Daraja</th>
-        <th>O'quv yili</th>
-        <th>Sinf rahbari</th>
-        <th>O'quvchilar</th>
-        <th>Sig'im</th>
-        <th>Amal</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for classroom in classrooms %}
-      <tr>
-        <td><a href="{% url 'students_classroom_detail' classroom.pk %}"><strong>{{ classroom.name }}</strong></a></td>
-        <td>{{ classroom.grade.name }}</td>
-        <td>{{ classroom.academic_year.name }}</td>
-        <td>{{ classroom.homeroom_teacher|default:"—" }}</td>
-        <td>{{ classroom.students.count }}</td>
-        <td>{{ classroom.capacity }}</td>
-        <td>
-          <a href="{% url 'students_classroom_detail' classroom.pk %}" class="btn btn-sm"><i class="fa-solid fa-eye"></i></a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="7" style="text-align:center;color:#888;">Sinf xonalari yo'q.</td></tr>
+<div class="filter-bar">
+  <form method="get" style="display:flex;align-items:center;gap:10px;width:100%;">
+    <i class="fa-solid fa-filter" style="color:#08543D;font-size:14px;"></i>
+    <select name="year">
+      <option value="">Barcha o'quv yillari</option>
+      {% for y in academic_years %}
+      <option value="{{ y.pk }}" {% if request.GET.year == y.pk|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
       {% endfor %}
-    </tbody>
-  </table>
+    </select>
+    <button type="submit">Filtr</button>
+  </form>
+</div>
+
+<div class="classroom-list">
+  {% for classroom in classrooms %}
+  <div class="classroom-row">
+    <div class="cls-icon"><i class="fa-solid fa-chalkboard"></i></div>
+    <div style="flex:1;min-width:0;">
+      <div class="cls-name">{{ classroom.name }}</div>
+      <div class="cls-meta">{{ classroom.grade.name }} &nbsp;·&nbsp; {{ classroom.academic_year.name }}</div>
+      <div class="cls-teacher">
+        <i class="fa-solid fa-user-tie"></i>
+        {% if classroom.homeroom_teacher %}{{ classroom.homeroom_teacher.get_full_name|default:classroom.homeroom_teacher.username }}{% else %}Sinf rahbari yo'q{% endif %}
+      </div>
+    </div>
+    <span class="cls-count"><i class="fa-solid fa-users" style="font-size:11px;margin-right:4px;"></i>{{ classroom.students.count }}/{{ classroom.capacity }}</span>
+    <div class="cls-actions">
+      <a href="{% url 'students_classroom_journal' classroom.pk %}" class="primary-action" title="Sinf jurnali">
+        <i class="fa-solid fa-book-open"></i> Jurnal
+      </a>
+      <a href="{% url 'students_classroom_detail' classroom.pk %}" title="Batafsil"><i class="fa-solid fa-info-circle"></i></a>
+      <a href="{% url 'students_classroom_attendance' classroom.pk %}" title="Davomat"><i class="fa-solid fa-clipboard-check"></i></a>
+      <a href="{% url 'students_schedule_create_for' classroom.pk %}" title="Jadval qo'shish"><i class="fa-solid fa-plus"></i></a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state">
+    <i class="fa-solid fa-school"></i>
+    Sinflar yo'q. <a href="{% url 'students_classroom_create' %}">Yangi sinf yarating</a>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

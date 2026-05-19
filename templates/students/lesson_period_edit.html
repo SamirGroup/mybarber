@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block breadcrumb %}Dars soatini tahrirlash{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">Dars soatini tahrirlash</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:13px;">Sinf darajasi</label>
+            <select name="level" class="form-select form-select-sm" required>
+              {% for code, label in levels %}
+              <option value="{{ code }}" {% if period.level == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:13px;">Soat raqami</label>
+            <input type="number" name="lesson_number" class="form-control form-control-sm" value="{{ period.lesson_number }}" required>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Boshlanish</label>
+              <input type="time" name="start_time" class="form-control form-control-sm" value="{{ period.start_time|time:'H:i' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="font-size:13px;">Tugash</label>
+              <input type="time" name="end_time" class="form-control form-control-sm" value="{{ period.end_time|time:'H:i' }}" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Yorliq</label>
+            <input type="text" name="label" class="form-control form-control-sm" value="{{ period.label }}">
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm">Saqlash</button>
+            <a href="{% url 'students_lesson_periods' %}" class="btn btn-secondary btn-sm">Bekor</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
